@@ -78,6 +78,17 @@
     </dependency>
     <dependency>
       <!--
+      BeepBeep
+      -->
+      <name>BeepBeep FSM palette</name>
+      <classname>ca.uqac.lif.cep.fsm.MooreMachine</classname>
+      <bundle>true</bundle>
+      <files>
+        <jar>https://github.com/liflab/beepbeep-3-palettes/releases/download/v20210430/fsm.jar</jar>
+      </files>
+    </dependency>
+    <dependency>
+      <!--
       Synthia. Used to generate random formulas and valuations.
       -->
       <name>Synthia</name>

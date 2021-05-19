@@ -17,6 +17,7 @@
  */
 package multitrace;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 /**
@@ -35,6 +36,19 @@ public class MultiEvent extends HashSet<Event>
 	 * @param events The atomic events
 	 */
 	public MultiEvent(Event ... events)
+	{
+		super();
+		for (Event e : events)
+		{
+			add(e);
+		}
+	}
+	
+	/**
+	 * Creates a multi-event with a given collection of atomic events.
+	 * @param events The atomic events
+	 */
+	public MultiEvent(Collection<Event> events)
 	{
 		super();
 		for (Event e : events)
