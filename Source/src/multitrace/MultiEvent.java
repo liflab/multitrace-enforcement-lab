@@ -18,13 +18,13 @@
 package multitrace;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
 
 /**
- * A set of atomic events. Two multi-events are equal if they contain
+ * A list of atomic events. Two multi-events are equal if they contain
  * the same atomic events.
  */
-public class MultiEvent extends HashSet<Event>
+public class MultiEvent extends ArrayList<Event>
 {
 	/**
 	 * Dummy UID

@@ -15,10 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package multitrace;
+package multitrace.test;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.UniformProcessor;
+import multitrace.Event;
 
 /**
  * Processor that gives as score for a trace the sum of ASCII value of all
@@ -54,9 +55,11 @@ public class HighestString extends UniformProcessor
 	}
 
 	@Override
-	public Processor duplicate(boolean with_state)
+	public HighestString duplicate(boolean with_state)
 	{
-		return new HighestString();
+		HighestString hs = new HighestString();
+		hs.m_total = m_total;
+		return hs;
 	}
 	
 	@Override

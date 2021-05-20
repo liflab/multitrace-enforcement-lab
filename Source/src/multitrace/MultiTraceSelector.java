@@ -25,30 +25,31 @@ import java.util.Queue;
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.ProcessorException;
+import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.SynchronousProcessor;
-import ca.uqac.lif.cep.tmf.SinkLast;
+import ca.uqac.lif.cep.tmf.BlackHole;
 
 /**
  * Processor that receives a stream of multi-events, and outputs a uni-event
  * projection of that stream, by picking uni-events based on the score given
  * to each uni-trace by an underlying processor.
  */
-public class Selector extends SynchronousProcessor
+public class MultiTraceSelector extends SynchronousProcessor
 {
 	/**
 	 * The trace of uni-events sent to the output so far.
 	 */
 	protected List<Event> m_prefix;
 	
-	/**
+	/**															
 	 * The score produced for the prefix of the trace output so far.
 	 */
 	protected int m_lastScore;
 	
 	/**
-	 * The ordered sequence of multi-events that have not yet been processed.
+	 * The ordered sequence of multi-trace elements that have not yet been processed.
 	 */
-	protected List<MultiEvent> m_pending;
+	protected List<MultiTraceElement> m_pending;
 	
 	/**
 	 * A processor that produces a score ranking uni-traces.
@@ -56,18 +57,36 @@ public class Selector extends SynchronousProcessor
 	protected Processor m_monitor;
 	
 	/**
+	 * A {@link Pushable} to push events to the ranking processor.
+	 */
+	protected Pushable m_pushable;
+	
+	/**
+	 * The enforcement pipeline of which this selector is part of, if any.
+	 */
+	protected EnforcementPipeline m_outerPipeline;
+	
+	/**
 	 * Creates a new instance of selector.
 	 * @param monitor A processor that produces a score ranking uni-traces.
 	 * Currently, this processor must be 1:1, accept {@link MultiEvents} as
 	 * its input and produce integers as its output.
 	 */
-	public Selector(Processor monitor)
+	public MultiTraceSelector(Processor monitor)
 	{
 		super(1, 1);
 		m_monitor = monitor;
 		m_prefix = new ArrayList<Event>();
-		m_pending = new ArrayList<MultiEvent>();
+		m_pending = new ArrayList<MultiTraceElement>();
 		m_lastScore = 0;
+		m_pushable = m_monitor.getPushableInput();
+		BlackHole hole = new BlackHole();
+		Connector.connect(m_monitor, hole);
+	}
+	
+	public void setEnforcementPipeline(EnforcementPipeline p)
+	{
+		m_outerPipeline = p;
 	}
 	
 	@Override
@@ -83,75 +102,76 @@ public class Selector extends SynchronousProcessor
 	@Override
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs) throws ProcessorException
 	{
-		MultiEvent me = (MultiEvent) inputs[0];
-		m_pending.add(me);
-		Iterator<MultiEvent> it = m_pending.iterator();
+		MultiTraceElement mte = (MultiTraceElement) inputs[0];
+		m_pending.add(mte);
 		if (!decide())
 		{
 			// Accumulate but output nothing
 			return true;
 		}
+		int to_follow = 0;
+		List<Event> to_output = new ArrayList<Event>();
+		List<Endpoint<Integer>> endpoints = new ArrayList<Endpoint<Integer>>();
+		endpoints.add(new Endpoint<Integer>(m_monitor.duplicate(true)));
+		List<Endpoint<Integer>> new_endpoints = new ArrayList<Endpoint<Integer>>();
+		Iterator<MultiTraceElement> it = m_pending.iterator();
 		while (it.hasNext())
 		{
-			MultiEvent t_me = it.next();
+			MultiTraceElement t_me = it.next();
 			it.remove();
 			Event e_best = null;
-			Processor p_best = null;
 			int s_best = Integer.MIN_VALUE;
-			for (Event e : t_me)
+			Endpoint<Integer> ep = endpoints.get(to_follow);
+			MultiEvent me = t_me.get(to_follow);
+			int new_to_follow = -1;
+			for (int i = 0; i < me.size(); i++)
 			{
-				int score;
-				// Make a copy of the monitor in its current state
-				Processor p_e = m_monitor.duplicate(true);
-				if (e.getLabel().isEmpty()) // Empty event
-				{
-					// Empty event: nothing to push and score does not change
-					score = m_lastScore;
-				}
-				else
-				{
-					// Non-empty event: push into monitor and get score
-					SinkLast qs = new SinkLast();
-					Connector.connect(p_e, qs);
-					p_e.getPushableInput().push(e);
-					Object[] out = qs.getLast();
-					if (out == null)
-					{
-						continue;
-					}
-					score = (Integer) out[0];
-				}
+				Event e = me.get(i);
+				Endpoint<Integer> n_ep = ep.duplicate();
+				int score = n_ep.getVerdict(e);
+				new_endpoints.add(n_ep);
 				// If the score produces beats the best score so far...
 				if (score > s_best)
 				{
 					// Keep this event and monitor as the current best
 					s_best = score;
-					p_best = p_e;
+					new_to_follow = i;
 					e_best = e;
 				}
 			}
-			if (p_best == null)
+			if (new_to_follow == -1)
 			{
 				// Should not happen
 				throw new ProcessorException("Monitor produced no score for any of the input events");
 			}
-			// Add the best event to the prefix
+			// Add the best event to the events to output
+			to_output.add(e_best);
 			m_prefix.add(e_best);
+			to_follow = new_to_follow;
+			endpoints = new_endpoints;
+		}
+		// The sequence of uni-events to produce has been computed
+		for (Event e : to_output)
+		{
 			// Output this best event, if it is not the empty event
-			if (!e_best.getLabel().isEmpty())
+			if (!e.getLabel().isEmpty())
 			{
-				outputs.add(new Object[] {e_best});
+				outputs.add(new Object[] {e});
+				m_pushable.push(e);
 			}
-			// Update the new current monitor state 
-			m_monitor = p_best;
+		}
+		// Notify the enforcement pipeline that events have been output
+		if (m_outerPipeline != null && !to_output.isEmpty())
+		{
+			m_outerPipeline.apply(to_output);
 		}
 		return true;
 	}
 
 	@Override
-	public Selector duplicate(boolean with_state) 
+	public MultiTraceSelector duplicate(boolean with_state) 
 	{
-		Selector s = new Selector(m_monitor.duplicate(with_state));
+		MultiTraceSelector s = new MultiTraceSelector(m_monitor.duplicate(with_state));
 		if (with_state)
 		{
 			s.m_prefix.addAll(m_prefix);

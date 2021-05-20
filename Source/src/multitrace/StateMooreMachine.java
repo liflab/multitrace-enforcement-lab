@@ -21,14 +21,33 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import ca.uqac.lif.cep.Context;
 import ca.uqac.lif.cep.fsm.MooreMachine;
+import ca.uqac.lif.cep.functions.Constant;
 import ca.uqac.lif.cep.functions.ContextAssignment;
 
 /**
- * A {@link MooreMachine} that exposes its current internal state.
+ * A {@link MooreMachine} that exposes its current internal state. This
+ * processor does nothing more than BeepBeep's original implementation
+ * in the LTL palette, with the exception of method {@link #getCurrentState()}
+ * which makes it possible to query the machine's internal state at any
+ * moment.
+ * <p>
+ * Method {@link #duplicate(boolean)} also has to be overridden so that it
+ * returns a {@link StateMooreMachine} instead of a {@link MooreMachine}.
  */
 public class StateMooreMachine extends MooreMachine
 {
+	/**
+	 * The constant "true" produced as output by the machine.
+	 */
+	public static final transient Constant TRUE = new Constant(true);
+	
+	/**
+	 * The constant "false" produced as output by the machine.
+	 */
+	public static final transient Constant FALSE = new Constant(false);
+	
 	public StateMooreMachine(int in_arity, int out_arity)
 	{
 		super(in_arity, out_arity);
@@ -75,5 +94,72 @@ public class StateMooreMachine extends MooreMachine
 			}	
 		}
 		return out;
+	}
+	
+	/**
+	 * Transition of a {@link MooreMachine} that fires if the incoming event
+	 * is equal to the transition's label.
+	 */
+	public static class EventTransition extends MooreMachine.Transition
+	{
+		/**
+		 * The event to compare with.
+		 */
+		protected Event m_event;
+		
+		/**
+		 * The destination state.
+		 */
+		protected int m_destination;
+		
+		/**
+		 * Creates a new transition.
+		 * @param e The event to compare with
+		 * @param destination The destination state
+		 */
+		public EventTransition(Event e, int destination)
+		{
+			super();
+			m_event = e;
+			m_destination = destination;
+		}
+		
+		/**
+		 * Creates a new transition.
+		 * @param label The event label to compare with
+		 * @param destination The destination state
+		 */
+		public EventTransition(String label, int destination)
+		{
+			this(Event.get(label), destination);
+		}
+		
+		@Override
+		public boolean isFired(Object[] inputs, Context context)
+		{
+			if (inputs[0] instanceof Event && ((Event) inputs[0]).equals(m_event))
+			{
+				return true;
+			}
+			return false;
+		}
+		
+		@Override
+		public String toString()
+		{
+			return m_event + "->" + m_destination;
+		}
+		
+		@Override
+		public int getDestination()
+		{
+			return m_destination;
+		}
+		
+		@Override
+		public EventTransition duplicate(boolean with_state)
+		{
+			return new EventTransition(m_event, m_destination);
+		}
 	}
 }

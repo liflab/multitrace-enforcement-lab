@@ -18,79 +18,93 @@
 package multitrace;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
+import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.SynchronousProcessor;
-import ca.uqac.lif.cep.tmf.SinkLast;
+import ca.uqac.lif.cep.tmf.BlackHole;
 
 /**
  * Processor filtering out a trace of multi-events, in order to keep only
  * uni-projections that do not produce the <tt>false</tt> verdict according
  * to an underlying (uni-)monitor.
  */
-public class MultiMonitor extends SynchronousProcessor
+public class MultiTraceFilter extends SynchronousProcessor
 {
 	/**
 	 * The monitor evaluating the validity of an input uni-trace.
 	 */
-	protected StateMooreMachine m_monitor;
-	
+	protected Processor m_monitor;
+
 	/**
-	 * A map associating instances of the monitor with their current state.
+	 * A pushable to push events to the monitor.
 	 */
-	protected Map<Integer,StateMooreMachine> m_stateMonitors;
-	
+	protected Pushable m_pushable;
+
+	/**
+	 * A list of endpoints.
+	 */
+	protected List<MonitorEndpoint> m_endpoints;
+
 	/**
 	 * Creates a new instance of the multi-monitor.
 	 * @param monitor The underlying monitor deciding which traces are valid
 	 */
-	public MultiMonitor(StateMooreMachine monitor)
+	public MultiTraceFilter(Processor monitor)
 	{
 		super(1, 1);
 		m_monitor = monitor;
-		m_stateMonitors = new HashMap<Integer,StateMooreMachine>();
+		BlackHole hole = new BlackHole();
+		Connector.connect(m_monitor, hole);
+		m_pushable = m_monitor.getPushableInput();
+		m_endpoints = new ArrayList<MonitorEndpoint>();
+		MonitorEndpoint e = new MonitorEndpoint(m_monitor.duplicate());
+		m_endpoints.add(e);
 	}
 
 	@Override
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
-		MultiEvent me_in = (MultiEvent) inputs[0];
-		List<Event> evts = new ArrayList<Event>(me_in.size());
-		Map<Integer,StateMooreMachine> new_state_monitors = new HashMap<Integer,StateMooreMachine>();
-		for (Event e : evts)
+		MultiTraceElement mte_in = (MultiTraceElement) inputs[0];
+		MultiTraceElement mte_out = new MultiTraceElement();
+		List<MonitorEndpoint> new_endpoints = new ArrayList<MonitorEndpoint>();
+		for (int j = 0; j < m_endpoints.size(); j++)
 		{
-			for (StateMooreMachine mm : m_stateMonitors.values())
+			MonitorEndpoint ep = m_endpoints.get(j);
+			MultiEvent me_in = mte_in.get(j);
+			List<Event> evts = new ArrayList<Event>();
+			for (Event e : me_in)
 			{
-				StateMooreMachine mm_dup = mm.duplicate(true);
-				SinkLast sink = new SinkLast();
-				Connector.connect(mm_dup, sink);
-				mm_dup.getPushableInput().push(e);
-				int state = mm_dup.getCurrentState();
-				if (!new_state_monitors.containsKey(state))
+				MonitorEndpoint n_ep = ep.duplicate();
+				boolean verdict = n_ep.getVerdict(e);
+				new_endpoints.add(n_ep);
+				if (verdict)
 				{
-					new_state_monitors.put(state, mm_dup);
-					Object[] out = sink.getLast();
-					if (out == null)
-					{
-						continue;
-					}
-					boolean verdict = (Boolean) out[0];
-					if (verdict)
-					{
-						evts.add(e);						
-					}
+					evts.add(e);
 				}
 			}
+			if (!evts.isEmpty())
+			{
+				MultiEvent me_out = new MultiEvent(evts);
+				mte_out.add(me_out);
+			}
 		}
-		MultiEvent me_out = new MultiEvent(evts);
-		outputs.add(new Object[] {me_out});
-		m_stateMonitors = new_state_monitors;
+		outputs.add(new Object[] {mte_out});
+		m_endpoints = new_endpoints;
 		return true;
+	}
+
+	@Override
+	public void reset()
+	{
+		super.reset();
+		m_monitor.reset();
+		m_endpoints.clear();
+		MonitorEndpoint e = new MonitorEndpoint(m_monitor.duplicate());
+		m_endpoints.add(e);
 	}
 
 	@Override
@@ -98,5 +112,16 @@ public class MultiMonitor extends SynchronousProcessor
 	{
 		// No need for this at the moment
 		throw new UnsupportedOperationException("Duplication not supported on this processor");
+	}
+
+	public void apply(List<Event> trace)
+	{
+		for (Event e : trace)
+		{
+			m_pushable.push(e);
+		}
+		m_endpoints.clear();
+		MonitorEndpoint e = new MonitorEndpoint(m_monitor.duplicate(true));
+		m_endpoints.add(e);
 	}
 }
