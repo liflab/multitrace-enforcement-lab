@@ -40,32 +40,27 @@ public class MultiTraceSelector extends SynchronousProcessor
 	 * The trace of uni-events sent to the output so far.
 	 */
 	protected List<Event> m_prefix;
-	
-	/**															
-	 * The score produced for the prefix of the trace output so far.
-	 */
-	protected int m_lastScore;
-	
+
 	/**
 	 * The ordered sequence of multi-trace elements that have not yet been processed.
 	 */
 	protected List<MultiTraceElement> m_pending;
-	
+
 	/**
 	 * A processor that produces a score ranking uni-traces.
 	 */
 	protected Processor m_monitor;
-	
+
 	/**
 	 * A {@link Pushable} to push events to the ranking processor.
 	 */
 	protected Pushable m_pushable;
-	
+
 	/**
 	 * The enforcement pipeline of which this selector is part of, if any.
 	 */
 	protected EnforcementPipeline m_outerPipeline;
-	
+
 	/**
 	 * Creates a new instance of selector.
 	 * @param monitor A processor that produces a score ranking uni-traces.
@@ -78,25 +73,19 @@ public class MultiTraceSelector extends SynchronousProcessor
 		m_monitor = monitor;
 		m_prefix = new ArrayList<Event>();
 		m_pending = new ArrayList<MultiTraceElement>();
-		m_lastScore = 0;
 		m_pushable = m_monitor.getPushableInput();
 		BlackHole hole = new BlackHole();
 		Connector.connect(m_monitor, hole);
 	}
-	
+
+	/**
+	 * Notifies the processor of the enforcement pipeline it is
+	 * integrated in
+	 * @param p The enforcement pipeline
+	 */
 	public void setEnforcementPipeline(EnforcementPipeline p)
 	{
 		m_outerPipeline = p;
-	}
-	
-	@Override
-	public void reset()
-	{
-		super.reset();
-		m_monitor.reset();
-		m_prefix.clear();
-		m_pending.clear();
-		m_lastScore = 0;
 	}
 
 	@Override
@@ -109,8 +98,6 @@ public class MultiTraceSelector extends SynchronousProcessor
 			// Accumulate but output nothing
 			return true;
 		}
-		int to_follow = 0;
-		List<Event> to_output = new ArrayList<Event>();
 		List<Endpoint<Integer>> endpoints = new ArrayList<Endpoint<Integer>>();
 		endpoints.add(new Endpoint<Integer>(m_monitor.duplicate(true)));
 		List<Endpoint<Integer>> new_endpoints = new ArrayList<Endpoint<Integer>>();
@@ -119,55 +106,55 @@ public class MultiTraceSelector extends SynchronousProcessor
 		{
 			MultiTraceElement t_me = it.next();
 			it.remove();
-			Event e_best = null;
-			int s_best = Integer.MIN_VALUE;
-			Endpoint<Integer> ep = endpoints.get(to_follow);
-			MultiEvent me = t_me.get(to_follow);
-			int new_to_follow = -1;
-			for (int i = 0; i < me.size(); i++)
+			for (int j = 0; j < t_me.size(); j++)
 			{
-				Event e = me.get(i);
-				Endpoint<Integer> n_ep = ep.duplicate();
-				int score = n_ep.getVerdict(e);
-				new_endpoints.add(n_ep);
-				// If the score produces beats the best score so far...
-				if (score > s_best)
+				Endpoint<Integer> ep = endpoints.get(j);
+				MultiEvent me = t_me.get(j);
+				for (int i = 0; i < me.size(); i++)
 				{
-					// Keep this event and monitor as the current best
-					s_best = score;
-					new_to_follow = i;
-					e_best = e;
+					Event e = me.get(i);
+					Endpoint<Integer> n_ep = ep.duplicate();
+					n_ep.getVerdict(e);
+					new_endpoints.add(n_ep);
 				}
 			}
-			if (new_to_follow == -1)
-			{
-				// Should not happen
-				throw new ProcessorException("Monitor produced no score for any of the input events");
-			}
-			// Add the best event to the events to output
-			to_output.add(e_best);
-			m_prefix.add(e_best);
-			to_follow = new_to_follow;
 			endpoints = new_endpoints;
 		}
-		// The sequence of uni-events to produce has been computed
-		for (Event e : to_output)
+		// Find the endpoint with the highest score
+		int best_score = Integer.MIN_VALUE;
+		Endpoint<Integer> best_endpoint = null;
+		for (Endpoint<Integer> ep : endpoints)
 		{
-			// Output this best event, if it is not the empty event
-			if (!e.getLabel().isEmpty())
+			int score = ep.getLastValue();
+			if (score > best_score)
 			{
-				outputs.add(new Object[] {e});
-				m_pushable.push(e);
+				score = best_score;
+				best_endpoint = ep;
 			}
 		}
-		// Notify the enforcement pipeline that events have been output
-		if (m_outerPipeline != null && !to_output.isEmpty())
+		if (best_endpoint != null)
 		{
-			m_outerPipeline.apply(to_output);
+			List<Event> to_output = best_endpoint.getInputTrace();
+			m_prefix.addAll(to_output);
+			// The sequence of uni-events to produce has been computed
+			for (Event e : to_output)
+			{
+				// Output this best event, if it is not the empty event
+				if (!e.getLabel().isEmpty())
+				{
+					outputs.add(new Object[] {e});
+					m_pushable.push(e);
+				}
+			}
+			// Notify the enforcement pipeline that events have been output
+			if (m_outerPipeline != null && !to_output.isEmpty())
+			{
+				m_outerPipeline.apply(to_output);
+			}
 		}
 		return true;
 	}
-
+	
 	@Override
 	public MultiTraceSelector duplicate(boolean with_state) 
 	{
@@ -176,17 +163,23 @@ public class MultiTraceSelector extends SynchronousProcessor
 		{
 			s.m_prefix.addAll(m_prefix);
 			s.m_pending.addAll(m_pending);
-			s.m_lastScore = m_lastScore;
 		}
 		return s;
 	}
-	
+
+	@Override
+	public void reset()
+	{
+		super.reset();
+		m_monitor.reset();
+		m_prefix.clear();
+		m_pending.clear();
+	}
+
 	/**
 	 * Determines if a part of the buffered multi-trace should be processed and
-	 * output events be produced. The default behavior is to return <tt>true</tt>
-	 * on every input multi-event received. Override this method to decide based
-	 * on a different condition.
-	 * @return <tt>true</tt>
+	 * output events be produced.
+	 * @return <tt>true</tt> if the selector is ready to select output events
 	 */
 	protected boolean decide()
 	{

@@ -17,6 +17,9 @@
  */
 package multitrace;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
@@ -52,6 +55,11 @@ public class Endpoint<T>
 	 * The last value produced by the inner processor.
 	 */
 	protected T m_lastValue = null;
+	
+	/**
+	 * The list of events given to the endpoint
+	 */
+	protected List<Event> m_inputTrace;
 
 	/**
 	 * Creates a new endpoint.
@@ -64,6 +72,7 @@ public class Endpoint<T>
 		m_sink = new SinkLast();
 		Connector.connect(m_processor, m_sink);
 		m_pushable = m_processor.getPushableInput();
+		m_inputTrace = new ArrayList<Event>();
 	}
 
 	/**
@@ -74,12 +83,20 @@ public class Endpoint<T>
 	{
 		Endpoint<T> e = new Endpoint<T>(m_processor.duplicate(true));
 		e.m_lastValue = m_lastValue;
+		e.m_inputTrace.addAll(m_inputTrace);
 		return e;
 	}
 
+	/**
+	 * Feeds an event to the processor in this endpoint, and retrieves its
+	 * output.
+	 * @param e The event
+	 * @return The output from the processor after being fed the event
+	 */
 	@SuppressWarnings("unchecked")
 	public T getVerdict(Event e)
 	{
+		m_inputTrace.add(e);
 		if (!e.getLabel().isEmpty())
 		{
 			m_pushable.push(e);
@@ -92,5 +109,23 @@ public class Endpoint<T>
 		T verdict = (T) out[0];
 		m_lastValue = verdict;
 		return verdict;
+	}
+	
+	/**
+	 * Gets the last value produced by the processor in this endpoint.
+	 * @return The value
+	 */
+	public T getLastValue()
+	{
+		return m_lastValue;
+	}
+	
+	/**
+	 * Gets the sequence of events given to the processor in this endpoint.
+	 * @return The sequence
+	 */
+	public List<Event> getInputTrace()
+	{
+		return m_inputTrace;
 	}
 }

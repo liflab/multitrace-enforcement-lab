@@ -28,12 +28,11 @@ import ca.uqac.lif.cep.tmf.SinkLast;
 import multitrace.EnforcementPipeline;
 import multitrace.Event;
 import multitrace.MultiEvent;
-import multitrace.MultiTraceSelector;
 import multitrace.StateMooreMachine;
 import multitrace.StateMooreMachine.EventTransition;
 
 /**
- * Unit tests for the {@link MultiTraceSelector} processor.
+ * Unit tests for the {@link MonotonicMultiTraceSelector} processor.
  */
 public class EnforcementPipelineTest
 {

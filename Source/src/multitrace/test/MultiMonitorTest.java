@@ -28,10 +28,9 @@ import multitrace.Event;
 import multitrace.MultiEvent;
 import multitrace.MultiTraceFilter;
 import multitrace.MultiTraceElement;
-import multitrace.MultiTraceSelector;
 
 /**
- * Unit tests for the {@link MultiTraceSelector} processor.
+ * Unit tests for the {@link MonotonicMultiTraceSelector} processor.
  */
 public class MultiMonitorTest
 {

@@ -31,7 +31,7 @@ import ca.uqac.lif.cep.Processor;
  * multi-trace</li>
  * <li>A {@link MultiTraceFilter}, which filters the multi-trace based on the
  * verdict produced by an underlying monitor</li>
- * <li>A {@link MultiTraceSelector}, which periodically evaluates these
+ * <li>A {@link MonotonicMultiTraceSelector}, which periodically evaluates these
  * multi-traces against a scoring processor and outputs the uni-trace
  * projection with the highest score</li>
  * </ol>
