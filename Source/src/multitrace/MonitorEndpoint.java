@@ -26,7 +26,7 @@ import ca.uqac.lif.cep.Processor;
  * interact with the monitor upon a call to {@link #getVerdict(Event)} and
  * simply return false. 
  */
-public class MonitorEndpoint extends Endpoint<Boolean>
+public class MonitorEndpoint extends Endpoint<Event,Boolean>
 {
 	/**
 	 * Flag that determines if this endpoint corresponds to a trace

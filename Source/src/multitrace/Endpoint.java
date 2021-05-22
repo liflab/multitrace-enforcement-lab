@@ -32,9 +32,10 @@ import ca.uqac.lif.cep.tmf.SinkLast;
  * An endpoint can also be duplicated, which produces a distinct copy
  * of the endpoint in the same state as the original.
  *
+ * @param <E> The type of the input events
  * @param <T> The type of the inner processor's output events
  */
-public class Endpoint<T>
+public class Endpoint<E,T>
 {
 	/**
 	 * A processor instance.
@@ -59,29 +60,29 @@ public class Endpoint<T>
 	/**
 	 * The list of events given to the endpoint
 	 */
-	protected List<Event> m_inputTrace;
+	protected List<E> m_inputTrace;
 
 	/**
 	 * Creates a new endpoint.
 	 * @param monitor A processor instance
 	 */
-	protected Endpoint(Processor monitor)
+	public Endpoint(Processor monitor)
 	{
 		super();
 		m_processor = monitor;
 		m_sink = new SinkLast();
 		Connector.connect(m_processor, m_sink);
 		m_pushable = m_processor.getPushableInput();
-		m_inputTrace = new ArrayList<Event>();
+		m_inputTrace = new ArrayList<E>();
 	}
 
 	/**
 	 * Creates a stateful copy of this endpoint and its inner processor.
 	 * @return A new endpoint in the same state as the current one
 	 */
-	public Endpoint<T> duplicate()
+	public Endpoint<E,T> duplicate()
 	{
-		Endpoint<T> e = new Endpoint<T>(m_processor.duplicate(true));
+		Endpoint<E,T> e = new Endpoint<E,T>(m_processor.duplicate(true));
 		e.m_lastValue = m_lastValue;
 		e.m_inputTrace.addAll(m_inputTrace);
 		return e;
@@ -94,10 +95,10 @@ public class Endpoint<T>
 	 * @return The output from the processor after being fed the event
 	 */
 	@SuppressWarnings("unchecked")
-	public T getVerdict(Event e)
+	public T getVerdict(E e)
 	{
 		m_inputTrace.add(e);
-		if (!e.getLabel().isEmpty())
+		if (e != null)
 		{
 			m_pushable.push(e);
 		}
@@ -124,8 +125,18 @@ public class Endpoint<T>
 	 * Gets the sequence of events given to the processor in this endpoint.
 	 * @return The sequence
 	 */
-	public List<Event> getInputTrace()
+	public List<E> getInputTrace()
 	{
 		return m_inputTrace;
+	}
+	
+	/**
+	 * Resets the processor of this endpoint.
+	 */
+	public void reset()
+	{
+		m_processor.reset();
+		m_lastValue = null;
+		m_inputTrace.clear();
 	}
 }

@@ -98,9 +98,9 @@ public class MultiTraceSelector extends SynchronousProcessor
 			// Accumulate but output nothing
 			return true;
 		}
-		List<Endpoint<Integer>> endpoints = new ArrayList<Endpoint<Integer>>();
-		endpoints.add(new Endpoint<Integer>(m_monitor.duplicate(true)));
-		List<Endpoint<Integer>> new_endpoints = new ArrayList<Endpoint<Integer>>();
+		List<EventEndpoint<Integer>> endpoints = new ArrayList<EventEndpoint<Integer>>();
+		endpoints.add(new EventEndpoint<Integer>(m_monitor.duplicate(true)));
+		List<EventEndpoint<Integer>> new_endpoints = new ArrayList<EventEndpoint<Integer>>();
 		Iterator<MultiTraceElement> it = m_pending.iterator();
 		while (it.hasNext())
 		{
@@ -108,12 +108,12 @@ public class MultiTraceSelector extends SynchronousProcessor
 			it.remove();
 			for (int j = 0; j < t_me.size(); j++)
 			{
-				Endpoint<Integer> ep = endpoints.get(j);
+				EventEndpoint<Integer> ep = endpoints.get(j);
 				MultiEvent me = t_me.get(j);
 				for (int i = 0; i < me.size(); i++)
 				{
 					Event e = me.get(i);
-					Endpoint<Integer> n_ep = ep.duplicate();
+					EventEndpoint<Integer> n_ep = ep.duplicate();
 					n_ep.getVerdict(e);
 					new_endpoints.add(n_ep);
 				}
@@ -122,8 +122,8 @@ public class MultiTraceSelector extends SynchronousProcessor
 		}
 		// Find the endpoint with the highest score
 		int best_score = Integer.MIN_VALUE;
-		Endpoint<Integer> best_endpoint = null;
-		for (Endpoint<Integer> ep : endpoints)
+		Endpoint<Event,Integer> best_endpoint = null;
+		for (Endpoint<Event,Integer> ep : endpoints)
 		{
 			int score = ep.getLastValue();
 			if (score > best_score)
