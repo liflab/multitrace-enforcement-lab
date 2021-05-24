@@ -31,7 +31,7 @@ import ca.uqac.lif.cep.tmf.SinkLast;
 import multitrace.Event;
 import multitrace.MultiEvent;
 import multitrace.MultiTraceElement;
-import multitrace.MultiTraceSelector;
+import multitrace.PrefixTreeMultiTraceSelector;
 
 /**
  * Unit tests for the {@link MonotonicMultiTraceSelector} processor.
@@ -48,7 +48,7 @@ public class MultiTraceSelectorTest
 	@Test
 	public void testHighestString1()
 	{
-		MultiTraceSelector s = new MultiTraceSelector(new HighestString());
+		PrefixTreeMultiTraceSelector s = new PrefixTreeMultiTraceSelector(new HighestString());
 		SinkLast sink = new SinkLast();
 		Connector.connect(s, sink);
 		Event e = null;
@@ -67,7 +67,7 @@ public class MultiTraceSelectorTest
 	@Test
 	public void testDecideEveryOther1()
 	{
-		MultiTraceSelector s = new SelectorEveryTwo(new HighestString());
+		PrefixTreeMultiTraceSelector s = new SelectorEveryTwo(new HighestString());
 		QueueSink sink = new QueueSink();
 		Queue<Object> queue = sink.getQueue();
 		Connector.connect(s, sink);
@@ -84,7 +84,7 @@ public class MultiTraceSelectorTest
 	 * Selector that outputs a sequence of events at every other input event.
 	 * It has no particular meaning and is only used for testing.
 	 */
-	protected static class SelectorEveryTwo extends MultiTraceSelector
+	protected static class SelectorEveryTwo extends PrefixTreeMultiTraceSelector
 	{
 		protected int m_count = 0;
 

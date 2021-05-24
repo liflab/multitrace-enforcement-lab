@@ -52,7 +52,7 @@ public class EnforcementPipeline extends GroupProcessor
 	 * The processor selecting the highest-ranked uni-trace coming out of
 	 * the filter.
 	 */
-	protected MultiTraceSelector m_selector; 
+	protected PrefixTreeMultiTraceSelector m_selector; 
 	 
 	/**
 	 * Creates a new instance of the enforcement pipeline.
@@ -67,7 +67,7 @@ public class EnforcementPipeline extends GroupProcessor
 		m_proxy = new MultiTraceProxy(proxy);
 		m_filter = new MultiTraceFilter(monitor);
 		Connector.connect(m_proxy, m_filter);
-		m_selector = new MultiTraceSelector(scorer);
+		m_selector = new PrefixTreeMultiTraceSelector(scorer);
 		m_selector.setEnforcementPipeline(this);
 		Connector.connect(m_filter, m_selector);
 		addProcessors(m_proxy, m_filter, m_selector);
