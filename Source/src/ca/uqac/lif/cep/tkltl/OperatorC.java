@@ -75,7 +75,7 @@ public class OperatorC extends SynchronousProcessor
 		while (it.hasNext())
 		{
 			Endpoint<Object,Quadrilean.Value> e = it.next();
-			Quadrilean.Value v = e.getVerdict(input[0]);
+			Quadrilean.Value v = e.getLastValue(input[0]);
 			if (v == m_value)
 			{
 				cnt++;

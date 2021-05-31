@@ -19,6 +19,9 @@ package multitrace.test;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
 import ca.uqac.lif.cep.Connector;
@@ -54,6 +57,30 @@ public class FilterTest
 		assertEquals(1, mte.size());
 		me = mte.get(0);
 		assertEquals(2, me.size());
+		List<Event> applied = new ArrayList<Event>();
+		applied.add(b);
+		mmon.apply(applied);
+		p.push(new PrefixTreeElement(AB));
+		mte = (PrefixTreeElement) sink.getLast()[0];
+		assertEquals(1, mte.size());
+		me = mte.get(0); // [a,#]
+		assertEquals(2, me.size());
+		assertTrue(me.contains(a));
+		assertTrue(me.contains(Event.DIAMOND));
+	}
+	
+	@Test
+	public void testNoTwoB2()
+	{
+		IntervalFilter mmon = new IntervalFilter(new NoTwoBs(), 2);
+		SinkLast sink = new SinkLast();
+		Connector.connect(mmon, sink);
+		MultiEvent me = null;
+		PrefixTreeElement mte = null;
+		Pushable p = mmon.getPushableInput();
+		p.push(new PrefixTreeElement(AB));
+		mte = (PrefixTreeElement) sink.getLast()[0];
+		assertEquals(0, mte.size());
 		p.push(new PrefixTreeElement(AB, AB));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(2, mte.size());
@@ -61,23 +88,28 @@ public class FilterTest
 		assertEquals(2, me.size());
 		assertTrue(me.contains(a));
 		assertTrue(me.contains(b));
-		me = mte.get(1); // [a]
+		me = mte.get(1); // [a,#]
 		assertEquals(2, me.size());
 		assertTrue(me.contains(a));
 		assertTrue(me.contains(Event.DIAMOND));
-		p.push(new PrefixTreeElement(AB, AB, AB, AB));
+		List<Event> applied = new ArrayList<Event>();
+		applied.add(a);
+		applied.add(b);
+		mmon.apply(applied);
+		p.push(new PrefixTreeElement(AB));
 		mte = (PrefixTreeElement) sink.getLast()[0];
-		assertEquals(3, mte.size());
-		me = mte.get(0); // [a,b]
+		assertEquals(0, mte.size());
+		p.push(new PrefixTreeElement(AB, AB));
+		mte = (PrefixTreeElement) sink.getLast()[0];
+		assertEquals(2, mte.size());
+		me = mte.get(1); // [a,#]
 		assertEquals(2, me.size());
 		assertTrue(me.contains(a));
-		assertTrue(me.contains(b));
-		me = mte.get(1); // [a]
-		assertEquals(1, me.size());
-		assertTrue(me.contains(a));
-		me = mte.get(2); // [a,b]
+		assertTrue(me.contains(Event.DIAMOND));
+		me = mte.get(1); // [#,#]
 		assertEquals(2, me.size());
-		assertTrue(me.contains(a));
-		assertTrue(me.contains(b));
+		assertFalse(me.contains(a));
+		assertFalse(me.contains(b));
+		assertTrue(me.contains(Event.DIAMOND));
 	}
 }

@@ -85,6 +85,10 @@ public class Event
 	@Override
 	public String toString()
 	{
+		if (m_label.isEmpty())
+		{
+			return "ε";
+		}
 		return m_label;
 	}
 	

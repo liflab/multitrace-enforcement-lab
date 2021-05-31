@@ -74,7 +74,7 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 		m_children = 1;
 		for (Event e : events)
 		{
-			m_checkpointEndpoint.getVerdict(e);
+			m_checkpointEndpoint.getLastValue(e);
 		}
 		m_endpoint = new Endpoint<Event,MultiEvent>(m_checkpointEndpoint.m_processor.duplicate(true));
 	}
@@ -82,14 +82,18 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 	@Override
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
-		MultiEvent me = m_endpoint.getVerdict((Event) inputs[0]);
-		PrefixTreeElement mte = new PrefixTreeElement();
-		for (int i = 0; i < m_children; i++)
+		List<MultiEvent> l_me = m_endpoint.getStream((Event) inputs[0]);
+		for (int j = 0; j < l_me.size(); j++)
 		{
-			mte.add(me);
+			PrefixTreeElement mte = new PrefixTreeElement();
+			MultiEvent me = l_me.get(j);
+			for (int i = 0; i < m_children; i++)
+			{
+				mte.add(me);
+			}
+			outputs.add(new Object[] {mte});
+			m_children *= me.size();
 		}
-		outputs.add(new Object[] {mte});
-		m_children *= me.size();
 		return true;
 	}
 

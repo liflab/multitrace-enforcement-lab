@@ -93,7 +93,7 @@ public class OperatorD extends SynchronousProcessor
 			for (int i = 0; i < m_phiEndpoints.size(); i++)
 			{
 				Endpoint<Object,Quadrilean.Value> ep = m_phiEndpoints.get(i);
-				Quadrilean.Value v = ep.getVerdict(input[0]);
+				Quadrilean.Value v = ep.getLastValue(input[0]);
 				if (v == Quadrilean.Value.TRUE)
 				{
 					// We found the first index where phi holds
@@ -109,7 +109,7 @@ public class OperatorD extends SynchronousProcessor
 			for (int i = 0; i < m_phiEndpoints.size(); i++)
 			{
 				Endpoint<Object,Quadrilean.Value> ep = m_phiEndpoints.get(i);
-				Quadrilean.Value v = ep.getVerdict(input[0]);
+				Quadrilean.Value v = ep.getLastValue(input[0]);
 				if (v == Quadrilean.Value.TRUE)
 				{
 					// We found the first index where psi holds

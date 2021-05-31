@@ -19,15 +19,16 @@ package multitrace;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
-import ca.uqac.lif.cep.tmf.SinkLast;
+import ca.uqac.lif.cep.tmf.QueueSink;
 
 /**
  * An instance of a processor in a particular state. An event can be
- * pushed to this processor using {@link #getVerdict(Event)}, and the
+ * pushed to this processor using {@link #getLastValue(Event)}, and the
  * result it produces can be queried by the return value of this method.
  * An endpoint can also be duplicated, which produces a distinct copy
  * of the endpoint in the same state as the original.
@@ -50,7 +51,7 @@ public class Endpoint<E,T>
 	/**
 	 * A sink receiving events from the monitor.
 	 */
-	protected SinkLast m_sink;
+	protected QueueSink m_sink;
 	
 	/**
 	 * The last value produced by the inner processor.
@@ -70,7 +71,7 @@ public class Endpoint<E,T>
 	{
 		super();
 		m_processor = monitor;
-		m_sink = new SinkLast();
+		m_sink = new QueueSink();
 		Connector.connect(m_processor, m_sink);
 		m_pushable = m_processor.getPushableInput();
 		m_inputTrace = new ArrayList<E>();
@@ -95,21 +96,42 @@ public class Endpoint<E,T>
 	 * @return The output from the processor after being fed the event
 	 */
 	@SuppressWarnings("unchecked")
-	public T getVerdict(E e)
+	public T getLastValue(E e)
 	{
 		m_inputTrace.add(e);
 		if (e != null)
 		{
 			m_pushable.push(e);
 		}
-		Object[] out = m_sink.getLast();
-		if (out == null)
+		Queue<Object> q = m_sink.getQueue();
+		if (q.isEmpty())
 		{
 			return m_lastValue;
 		}
-		T verdict = (T) out[0];
-		m_lastValue = verdict;
-		return verdict;
+		T out = null;
+		while (!q.isEmpty())
+		{
+			out = (T) q.remove();
+		}
+		m_lastValue = out;
+		return out;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<T> getStream(E e)
+	{
+		m_inputTrace.add(e);
+		if (e != null)
+		{
+			m_pushable.push(e);
+		}
+		Queue<Object> q = m_sink.getQueue();
+		List<T> list = new ArrayList<T>(q.size());
+		while (!q.isEmpty())
+		{
+			list.add((T) q.remove());
+		}
+		return list;
 	}
 	
 	/**

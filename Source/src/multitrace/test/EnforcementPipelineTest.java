@@ -19,11 +19,22 @@ package multitrace.test;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ca.uqac.lif.cep.Connector;
+import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
+import ca.uqac.lif.cep.SynchronousProcessor;
+import ca.uqac.lif.cep.UniformProcessor;
 import ca.uqac.lif.cep.functions.Constant;
+import ca.uqac.lif.cep.functions.TurnInto;
+import ca.uqac.lif.cep.tmf.Filter;
+import ca.uqac.lif.cep.tmf.QueueSink;
 import ca.uqac.lif.cep.tmf.SinkLast;
 import multitrace.Event;
 import multitrace.Gate;
@@ -31,8 +42,11 @@ import multitrace.IntervalFilter;
 import multitrace.IntervalSelector;
 import multitrace.MultiEvent;
 import multitrace.Proxy;
+import multitrace.Quadrilean;
+import multitrace.Selector;
 import multitrace.StateMooreMachine;
 import multitrace.StateMooreMachine.EventTransition;
+import multitrace.test.ProxyTest.AddB;
 
 /**
  * Unit tests for the {@link MonotonicMultiTraceSelector} processor.
@@ -42,8 +56,11 @@ public class EnforcementPipelineTest
 	protected static final Event a = Event.get("a");
 	protected static final Event b = Event.get("b");
 	protected static final Event c = Event.get("c");
-	
+	protected static final Event x = Event.get("x");
+	protected static final Event y = Event.get("y");
+
 	@Test
+	@Ignore
 	public void testHighestString1()
 	{
 		StateMooreMachine invert_b_c = new StateMooreMachine(1, 1);
@@ -80,4 +97,147 @@ public class EnforcementPipelineTest
 		e = (Event) sink.getLast()[0];
 		assertEquals("a", e.getLabel());
 	}
+
+	@Test
+	public void testAEventuallyB1()
+	{
+		Gate gate = new Gate(new AFB(), new Proxy(new InsertB()), new IntervalFilter(new AFB(), 3), new IntervalSelector(new TurnInto(1), 3));
+		QueueSink sink = new QueueSink();
+		Connector.connect(gate, sink);
+		Pushable p = gate.getPushableInput();
+		Queue<Object> q = sink.getQueue();
+		p.push(a);
+		assertTrue(q.isEmpty());
+		p.push(b);
+		assertEquals(2, q.size());
+	}
+	
+	@Test
+	public void testAEventuallyB2()
+	{
+		Gate gate = new Gate(new AFB(), new Proxy(new InsertB()), new IntervalFilter(new AFB(), 5), new IntervalSelector(new Length(), 5));
+		QueueSink sink = new QueueSink();
+		Connector.connect(gate, sink);
+		Pushable p = gate.getPushableInput();
+		Queue<Object> q = sink.getQueue();
+		p.push(a);
+		assertTrue(q.isEmpty());
+		p.push(x);
+		assertTrue(q.isEmpty());
+		p.push(y);
+		assertFalse(q.isEmpty());
+		assertEquals(a, q.remove());
+	}
+
+	public static class InsertB extends SynchronousProcessor
+	{
+		public InsertB()
+		{
+			super(1, 1);
+		}
+
+		@Override
+		protected boolean compute(Object[] input, Queue<Object[]> output)
+		{
+			{
+				List<Event> evts = new ArrayList<Event>();
+				evts.add(Event.EPSILON);
+				evts.add(Event.get("b"));
+				MultiEvent me = new MultiEvent(evts);
+				output.add(new Object[] {me});
+			}
+			{
+				List<Event> evts = new ArrayList<Event>();
+				evts.add((Event) input[0]);
+				MultiEvent me = new MultiEvent(evts);
+				output.add(new Object[] {me});
+			}
+			return true;
+		}
+
+		@Override
+		public InsertB duplicate(boolean with_state)
+		{
+			return new InsertB();
+		}
+
+	}
+	
+	public static class Length extends UniformProcessor
+	{
+		protected int m_length;
+		
+		public Length()
+		{
+			super(1, 1);
+			m_length = 0;
+		}
+
+		@Override
+		protected boolean compute(Object[] input, Object[] output)
+		{
+			m_length++;
+			output[0] = -m_length;
+			return true;
+		}
+
+		@Override
+		public Length duplicate(boolean arg0) 
+		{
+			Length l = new Length();
+			l.m_length = m_length;
+			return l;
+		}
+	}
+
+	public static class AFB extends UniformProcessor
+	{
+
+		protected static final transient Event A = Event.get("a");
+
+		protected static final transient Event B = Event.get("b");
+
+		protected boolean m_critical;
+
+		public AFB()
+		{
+			super(1, 1);
+			m_critical = false;
+		}
+
+		@Override
+		protected boolean compute(Object[] input, Object[] output)
+		{
+			Event e = (Event) input[0];
+			if (e == A)
+			{
+				m_critical = true;
+			}
+			if (e == B)
+			{
+				m_critical = false;
+			}
+			if (m_critical)
+			{
+				output[0] = Quadrilean.Value.P_FALSE;
+			}
+			else
+			{
+				output[0] = Quadrilean.Value.P_TRUE;
+			}
+			return true;
+		}
+
+		@Override
+		public AFB duplicate(boolean with_state)
+		{
+			AFB a = new AFB();
+			if (with_state)
+			{
+				a.m_critical = m_critical;
+			}
+			return a;
+		}
+	}
+
 }

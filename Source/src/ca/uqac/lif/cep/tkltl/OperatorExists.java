@@ -65,7 +65,7 @@ public class OperatorExists extends OperatorP
 		}
 		else
 		{
-			Quadrilean.Value v = m_comparison.compare(m_countEndpoint.getVerdict(input[0]), m_k);
+			Quadrilean.Value v = m_comparison.compare(m_countEndpoint.getLastValue(input[0]), m_k);
 			if (v == Quadrilean.Value.TRUE)
 			{
 				m_seenTrue = true;

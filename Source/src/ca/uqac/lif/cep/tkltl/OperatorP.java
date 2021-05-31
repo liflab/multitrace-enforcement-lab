@@ -84,7 +84,7 @@ public class OperatorP extends SynchronousProcessor
 	@Override
 	protected boolean compute(Object[] input, Queue<Object[]> output)
 	{
-		output.add(new Object[] {m_comparison.compare(m_countEndpoint.getVerdict(input[0]), m_k)});
+		output.add(new Object[] {m_comparison.compare(m_countEndpoint.getLastValue(input[0]), m_k)});
 		return true;
 	}
 
