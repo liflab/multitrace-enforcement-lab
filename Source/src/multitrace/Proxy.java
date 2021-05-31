@@ -17,6 +17,7 @@
  */
 package multitrace;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
@@ -83,6 +84,7 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
 		List<MultiEvent> l_me = m_endpoint.getStream((Event) inputs[0]);
+		List<PrefixTreeElement> ptes = new ArrayList<PrefixTreeElement>();
 		for (int j = 0; j < l_me.size(); j++)
 		{
 			PrefixTreeElement mte = new PrefixTreeElement();
@@ -91,9 +93,10 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 			{
 				mte.add(me);
 			}
-			outputs.add(new Object[] {mte});
+			ptes.add(mte);
 			m_children *= me.size();
 		}
+		outputs.add(new Object[] {ptes});
 		return true;
 	}
 

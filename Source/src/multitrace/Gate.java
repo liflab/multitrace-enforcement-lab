@@ -101,7 +101,6 @@ public class Gate extends SynchronousProcessor
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
 		Event in_event = (Event) inputs[0];
-		System.out.println("Gate receiving " + in_event);
 		Quadrilean.Value verdict = m_monitorEndpoint.getLastValue(in_event);
 		m_prefix.add(in_event);
 		if (verdict == Quadrilean.Value.TRUE || verdict == Quadrilean.Value.P_TRUE)
@@ -116,13 +115,10 @@ public class Gate extends SynchronousProcessor
 			m_selector.apply(m_prefix);
 			m_prefix.clear();
 			m_muCheckpoint = m_mu.duplicate(true);
-			System.out.println("Gate outputting " + in_event);
 			return true;
 		}
 		// Wait for the enforcement pipeline to output something
-		System.out.println("Before gate push");
 		m_pushable.push(in_event);
-		System.out.println("After gate push");
 		Queue<Object> q = m_sink.getQueue();
 		if (!q.isEmpty())
 		{
@@ -143,7 +139,6 @@ public class Gate extends SynchronousProcessor
 			m_selector.apply(to_output);
 			m_monitorEndpoint =  new Endpoint<Event,Quadrilean.Value>(m_muCheckpoint.duplicate(true));
 			m_prefix.clear();
-			System.out.println("Gate Outputting " + to_output);
 		}
 		return true;
 	}

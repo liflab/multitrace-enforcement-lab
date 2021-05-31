@@ -18,13 +18,11 @@
 package multitrace;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.SynchronousProcessor;
-import multitrace.Quadrilean.Value;
 
 public abstract class Selector extends SynchronousProcessor implements Checkpointable
 {
@@ -56,12 +54,12 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		m_elements.clear();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
-		PrefixTreeElement elem = (PrefixTreeElement) inputs[0];
-		System.out.println("Called on" + inputs[0]);
-		m_elements.add(elem);
+		List<PrefixTreeElement> elems = (List<PrefixTreeElement>) inputs[0];
+		m_elements.addAll(elems);
 		if (!decide())
 		{
 			return true;
@@ -119,7 +117,6 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		if (best_endpoint != null)
 		{
 			List<Event> to_output = best_endpoint.getInputTrace();
-			System.out.println("Best:" + to_output);
 			// The sequence of uni-events to produce has been computed
 			for (Event e : to_output)
 			{

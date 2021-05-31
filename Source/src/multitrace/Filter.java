@@ -61,11 +61,12 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		m_elements.clear();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
-		PrefixTreeElement elem = (PrefixTreeElement) inputs[0];
-		m_elements.add(elem);
+		List<PrefixTreeElement> elems = (List<PrefixTreeElement>) inputs[0];
+		m_elements.addAll(elems);
 		if (!decide())
 		{
 			return true;
@@ -119,12 +120,8 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 			endpoints = new_endpoints;
 			out_list.add(out_element);
 		}
-		for (PrefixTreeElement out_elem : out_list)
-		{
-			outputs.add(new Object[] {out_elem});
-		}
-		m_elements.clear();
-		System.out.println("Filter outputting " + out_list);
+		//m_elements.clear();
+		outputs.add(new Object[] {out_list});
 		return true;
 	}
 

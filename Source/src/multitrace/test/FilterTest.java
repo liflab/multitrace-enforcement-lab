@@ -52,7 +52,7 @@ public class FilterTest
 		MultiEvent me = null;
 		PrefixTreeElement mte = null;
 		Pushable p = mmon.getPushableInput();
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(1, mte.size());
 		me = mte.get(0);
@@ -60,7 +60,7 @@ public class FilterTest
 		List<Event> applied = new ArrayList<Event>();
 		applied.add(b);
 		mmon.apply(applied);
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(1, mte.size());
 		me = mte.get(0); // [a,#]
@@ -78,10 +78,10 @@ public class FilterTest
 		MultiEvent me = null;
 		PrefixTreeElement mte = null;
 		Pushable p = mmon.getPushableInput();
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(0, mte.size());
-		p.push(new PrefixTreeElement(AB, AB));
+		p.push(getList(new PrefixTreeElement(AB, AB)));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(2, mte.size());
 		me = mte.get(0); // [a,b]
@@ -96,10 +96,10 @@ public class FilterTest
 		applied.add(a);
 		applied.add(b);
 		mmon.apply(applied);
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(0, mte.size());
-		p.push(new PrefixTreeElement(AB, AB));
+		p.push(getList(new PrefixTreeElement(AB, AB)));
 		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(2, mte.size());
 		me = mte.get(1); // [a,#]
@@ -111,5 +111,12 @@ public class FilterTest
 		assertFalse(me.contains(a));
 		assertFalse(me.contains(b));
 		assertTrue(me.contains(Event.DIAMOND));
+	}
+	
+	protected static List<PrefixTreeElement> getList(PrefixTreeElement pte)
+	{
+		List<PrefixTreeElement> list = new ArrayList<PrefixTreeElement>();
+		list.add(pte);
+		return list;
 	}
 }

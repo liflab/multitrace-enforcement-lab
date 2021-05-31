@@ -127,6 +127,12 @@ public class EnforcementPipelineTest
 		p.push(y);
 		assertFalse(q.isEmpty());
 		assertEquals(a, q.remove());
+		assertEquals(x, q.remove());
+		assertEquals(b, q.remove());
+		assertEquals(y, q.remove());
+		p.push(b);
+		assertFalse(q.isEmpty());
+		assertEquals(b, q.remove());
 	}
 
 	public static class InsertB extends SynchronousProcessor
