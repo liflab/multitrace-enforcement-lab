@@ -27,7 +27,7 @@ import java.util.List;
 public class DotMultiTraceRenderer implements MultiTraceRenderer
 {
 	@Override
-	public void render(List<MultiTraceElement> trace, PrintStream ps)
+	public void render(List<PrefixTreeElement> trace, PrintStream ps)
 	{
 		int id_counter = 0;
 		ps.println("digraph G {");
@@ -35,7 +35,7 @@ public class DotMultiTraceRenderer implements MultiTraceRenderer
 		ps.println(" 0 [label=\"\"];");
 		List<Integer> parents = new ArrayList<Integer>();
 		parents.add(0);
-		for (MultiTraceElement mte : trace)
+		for (PrefixTreeElement mte : trace)
 		{
 			List<Integer> new_parents = new ArrayList<Integer>();
 			for (int i = 0; i < parents.size(); i++)

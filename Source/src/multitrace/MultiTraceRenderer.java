@@ -27,5 +27,5 @@ public interface MultiTraceRenderer
 	 * @param trace The multi-trace
 	 * @param ps The print stream where the trace is printed
 	 */
-	public void render(List<MultiTraceElement> trace, PrintStream ps);
+	public void render(List<PrefixTreeElement> trace, PrintStream ps);
 }

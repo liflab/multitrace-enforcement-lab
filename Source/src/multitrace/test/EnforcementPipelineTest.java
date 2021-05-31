@@ -25,9 +25,12 @@ import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.functions.Constant;
 import ca.uqac.lif.cep.tmf.SinkLast;
-import multitrace.EnforcementPipeline;
 import multitrace.Event;
+import multitrace.Gate;
+import multitrace.IntervalFilter;
+import multitrace.IntervalSelector;
 import multitrace.MultiEvent;
+import multitrace.Proxy;
 import multitrace.StateMooreMachine;
 import multitrace.StateMooreMachine.EventTransition;
 
@@ -62,7 +65,7 @@ public class EnforcementPipelineTest
 			invert_b_c.addSymbol(2, new Constant(new MultiEvent(a, b)));
 			invert_b_c.addSymbol(3, new Constant(new MultiEvent(c)));
 		}
-		EnforcementPipeline pipeline = new EnforcementPipeline(invert_b_c, new NoTwoBs(), new HighestString());
+		Gate pipeline = new Gate(new NoTwoBs(), new Proxy(invert_b_c), new IntervalFilter(new NoTwoBs(), 1), new IntervalSelector(new HighestString(), 1));
 		SinkLast sink = new SinkLast();
 		Connector.connect(pipeline, sink);
 		Event e = null;

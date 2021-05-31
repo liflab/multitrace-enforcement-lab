@@ -31,6 +31,11 @@ public class Event
 	public static final transient Event EPSILON = new Event("");
 	
 	/**
+	 * The "diamond" event.
+	 */
+	public static final transient Event DIAMOND = new Event("♦");
+	
+	/**
 	 * The label of the event.
 	 */
 	protected final String m_label;

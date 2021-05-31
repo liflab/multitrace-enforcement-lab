@@ -17,41 +17,9 @@
  */
 package multitrace;
 
-import ca.uqac.lif.cep.Processor;
+import java.util.List;
 
-public class EventEndpoint<T> extends Endpoint<Event,T>
+public interface Checkpointable
 {
-
-	public EventEndpoint(Processor monitor)
-	{
-		super(monitor);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public T getVerdict(Event e)
-	{
-		m_inputTrace.add(e);
-		if (!e.getLabel().isEmpty())
-		{
-			m_pushable.push(e);
-		}
-		Object[] out = m_sink.getLast();
-		if (out == null)
-		{
-			return m_lastValue;
-		}
-		T verdict = (T) out[0];
-		m_lastValue = verdict;
-		return verdict;
-	}
-	
-	@Override
-	public EventEndpoint<T> duplicate()
-	{
-		EventEndpoint<T> e = new EventEndpoint<T>(m_processor.duplicate(true));
-		e.m_lastValue = m_lastValue;
-		e.m_inputTrace.addAll(m_inputTrace);
-		return e;
-	}
-
+	public void apply(List<Event> events);
 }

@@ -17,48 +17,41 @@
  */
 package multitrace;
 
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.Collection;
 
-import ca.uqac.lif.cep.SynchronousProcessor;
-
-public class AppendToMultiTrace extends SynchronousProcessor
+public class PrefixTreeElement extends ArrayList<MultiEvent>
 {
-	protected int m_children;
+
+	/**
+	 * Dummy UID
+	 */
+	private static final long serialVersionUID = 1L;
 	
-	public AppendToMultiTrace()
+	/**
+	 * Creates a multi-trace element with a given list of multi-events.
+	 * @param events The multi-events
+	 */
+	public PrefixTreeElement(MultiEvent ... events)
 	{
-		super(1, 1);
-		m_children = 1;
+		super();
+		for (MultiEvent e : events)
+		{
+			add(e);
+		}
 	}
 	
-	@Override
-	public void reset()
+	/**
+	 * Creates a multi-trace element with a given collection of multi-events.
+	 * @param events The multi-events
+	 */
+	public PrefixTreeElement(Collection<MultiEvent> events)
 	{
-		m_children = 1;
+		super();
+		for (MultiEvent e : events)
+		{
+			add(e);
+		}
 	}
 
-	@Override
-	protected boolean compute(Object[] input, Queue<Object[]> output)
-	{
-		MultiEvent me = (MultiEvent) input[0];
-		MultiTraceElement mte = new MultiTraceElement();
-		for (int i = 0; i < m_children; i++)
-		{
-			mte.add(me);
-		}
-		output.add(new Object[] {mte});
-		m_children *= me.size();
-		return true;
-	}
-
-	@Override
-	public AppendToMultiTrace duplicate(boolean with_state)
-	{
-		AppendToMultiTrace a = new AppendToMultiTrace();
-		if (with_state)
-		{
-			a.m_children = m_children;
-		}
-		return a;
-	}
 }

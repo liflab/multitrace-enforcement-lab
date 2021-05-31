@@ -24,19 +24,18 @@ import java.util.Queue;
 import org.junit.Test;
 
 import ca.uqac.lif.cep.Connector;
-import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.tmf.QueueSink;
 import ca.uqac.lif.cep.tmf.SinkLast;
 import multitrace.Event;
+import multitrace.IntervalSelector;
 import multitrace.MultiEvent;
-import multitrace.MultiTraceElement;
-import multitrace.PrefixTreeMultiTraceSelector;
+import multitrace.PrefixTreeElement;
 
 /**
- * Unit tests for the {@link MonotonicMultiTraceSelector} processor.
+ * Unit tests for the {@link IntervalSelector} processor.
  */
-public class MultiTraceSelectorTest
+public class SelectorTest
 {
 	protected static final Event a = Event.get("a");
 	protected static final Event b = Event.get("b");
@@ -48,18 +47,18 @@ public class MultiTraceSelectorTest
 	@Test
 	public void testHighestString1()
 	{
-		PrefixTreeMultiTraceSelector s = new PrefixTreeMultiTraceSelector(new HighestString());
+		IntervalSelector s = new IntervalSelector(new HighestString(), 1);
 		SinkLast sink = new SinkLast();
 		Connector.connect(s, sink);
 		Event e = null;
 		Pushable p = s.getPushableInput();
-		p.push(new MultiTraceElement(A));
+		p.push(new PrefixTreeElement(A));
 		e = (Event) sink.getLast()[0];
 		assertEquals("a", e.getLabel());
-		p.push(new MultiTraceElement(AB));
+		p.push(new PrefixTreeElement(AB));
 		e = (Event) sink.getLast()[0];
 		assertEquals("b", e.getLabel());
-		p.push(new MultiTraceElement(AB));
+		p.push(new PrefixTreeElement(AB));
 		e = (Event) sink.getLast()[0];
 		assertEquals("b", e.getLabel());
 	}
@@ -67,36 +66,17 @@ public class MultiTraceSelectorTest
 	@Test
 	public void testDecideEveryOther1()
 	{
-		PrefixTreeMultiTraceSelector s = new SelectorEveryTwo(new HighestString());
+		IntervalSelector s = new IntervalSelector(new HighestString(), 2);
 		QueueSink sink = new QueueSink();
 		Queue<Object> queue = sink.getQueue();
 		Connector.connect(s, sink);
 		Pushable p = s.getPushableInput();
-		p.push(new MultiTraceElement(A));
-		assertEquals(1, queue.size());
-		p.push(new MultiTraceElement(AB));
-		assertEquals(1, queue.size());
-		p.push(new MultiTraceElement(eB, eB));
-		assertEquals(3, queue.size());
-	}
-
-	/**
-	 * Selector that outputs a sequence of events at every other input event.
-	 * It has no particular meaning and is only used for testing.
-	 */
-	protected static class SelectorEveryTwo extends PrefixTreeMultiTraceSelector
-	{
-		protected int m_count = 0;
-
-		public SelectorEveryTwo(Processor monitor)
-		{
-			super(monitor);
-		}
-
-		@Override
-		protected boolean decide()
-		{
-			return m_count++ % 2 == 0;
-		}
+		p.push(new PrefixTreeElement(A));
+		assertEquals(0, queue.size());
+		p.push(new PrefixTreeElement(AB));
+		assertEquals(2, queue.size());
+		queue.clear();
+		p.push(new PrefixTreeElement(eB, eB));
+		assertEquals(0, queue.size());
 	}
 }

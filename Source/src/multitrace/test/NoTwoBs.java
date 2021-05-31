@@ -18,6 +18,8 @@
 package multitrace.test;
 
 import ca.uqac.lif.cep.fsm.TransitionOtherwise;
+import ca.uqac.lif.cep.functions.Constant;
+import multitrace.Quadrilean;
 import multitrace.StateMooreMachine;
 
 /**
@@ -37,8 +39,8 @@ public class NoTwoBs extends StateMooreMachine
 		addTransition(0, new TransitionOtherwise(0));
 		addTransition(1, new TransitionOtherwise(0));
 		addTransition(2, new TransitionOtherwise(2));
-		addSymbol(0, TRUE);
-		addSymbol(1, TRUE);
-		addSymbol(2, FALSE);
+		addSymbol(0, new Constant(Quadrilean.Value.P_TRUE));
+		addSymbol(1, new Constant(Quadrilean.Value.P_TRUE));
+		addSymbol(2, new Constant(Quadrilean.Value.FALSE));
 	}
 }

@@ -66,7 +66,7 @@ public class MainLab extends Laboratory
 			Region r = new Region();
 			r.add(EVENT_SOURCE, SE_CASINO_RANDOM);
 			r.add(SCORING_FORMULA, SC_MAXIMIZE_BETS, SC_MAXIMIZE_GAINS);
-			r.add(INTERVAL, 1, 2, 5, 10);
+			r.add(INTERVAL, 1, 100, 500, 2000);
 			r.add(TECHNIQUE, T_BRUTE_FORCE, T_PREFIX_TREE);
 			for (Region r_p : r.all(SCORING_FORMULA, EVENT_SOURCE))
 			{

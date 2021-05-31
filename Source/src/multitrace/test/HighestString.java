@@ -17,7 +17,6 @@
  */
 package multitrace.test;
 
-import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.UniformProcessor;
 import multitrace.Event;
 

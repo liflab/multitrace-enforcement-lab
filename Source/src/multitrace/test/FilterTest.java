@@ -25,14 +25,14 @@ import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.tmf.SinkLast;
 import multitrace.Event;
+import multitrace.IntervalFilter;
 import multitrace.MultiEvent;
-import multitrace.MultiTraceFilter;
-import multitrace.MultiTraceElement;
+import multitrace.PrefixTreeElement;
 
 /**
  * Unit tests for the {@link MonotonicMultiTraceSelector} processor.
  */
-public class MultiMonitorTest
+public class FilterTest
 {
 	protected static final Event a = Event.get("a");
 	protected static final Event b = Event.get("b");
@@ -43,29 +43,30 @@ public class MultiMonitorTest
 	@Test
 	public void testNoTwoB1()
 	{
-		MultiTraceFilter mmon = new MultiTraceFilter(new NoTwoBs());
+		IntervalFilter mmon = new IntervalFilter(new NoTwoBs(), 1);
 		SinkLast sink = new SinkLast();
 		Connector.connect(mmon, sink);
 		MultiEvent me = null;
-		MultiTraceElement mte = null;
+		PrefixTreeElement mte = null;
 		Pushable p = mmon.getPushableInput();
-		p.push(new MultiTraceElement(AB));
-		mte = (MultiTraceElement) sink.getLast()[0];
+		p.push(new PrefixTreeElement(AB));
+		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(1, mte.size());
 		me = mte.get(0);
 		assertEquals(2, me.size());
-		p.push(new MultiTraceElement(AB, AB));
-		mte = (MultiTraceElement) sink.getLast()[0];
+		p.push(new PrefixTreeElement(AB, AB));
+		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(2, mte.size());
 		me = mte.get(0); // [a,b]
 		assertEquals(2, me.size());
 		assertTrue(me.contains(a));
 		assertTrue(me.contains(b));
 		me = mte.get(1); // [a]
-		assertEquals(1, me.size());
+		assertEquals(2, me.size());
 		assertTrue(me.contains(a));
-		p.push(new MultiTraceElement(AB, AB, AB, AB));
-		mte = (MultiTraceElement) sink.getLast()[0];
+		assertTrue(me.contains(Event.DIAMOND));
+		p.push(new PrefixTreeElement(AB, AB, AB, AB));
+		mte = (PrefixTreeElement) sink.getLast()[0];
 		assertEquals(3, mte.size());
 		me = mte.get(0); // [a,b]
 		assertEquals(2, me.size());

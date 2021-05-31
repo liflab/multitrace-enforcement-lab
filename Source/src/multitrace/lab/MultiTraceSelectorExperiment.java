@@ -25,7 +25,7 @@ import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.labpal.Experiment;
 import ca.uqac.lif.labpal.ExperimentException;
 import multitrace.AppendToMultiTrace;
-import multitrace.MultiTraceElement;
+import multitrace.PrefixTreeElement;
 import multitrace.MultiTraceSelector;
 
 /**
@@ -107,7 +107,7 @@ public class MultiTraceSelectorExperiment extends Experiment
 			{
 				atm.reset();
 			}
-			MultiTraceElement mte = (MultiTraceElement) q_p.pull();
+			PrefixTreeElement mte = (PrefixTreeElement) q_p.pull();
 			s_p.push(mte);
 		}
 		long end = System.currentTimeMillis();

@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import multitrace.DotMultiTraceRenderer;
 import multitrace.MultiEvent;
-import multitrace.MultiTraceElement;
+import multitrace.PrefixTreeElement;
 
 /**
  * Unit tests for renderers.
@@ -35,10 +35,10 @@ public class RendererTest
 	public void testDotRenderer1()
 	{
 		DotMultiTraceRenderer renderer = new DotMultiTraceRenderer();
-		List<MultiTraceElement> trace = new ArrayList<MultiTraceElement>();
-		trace.add(new MultiTraceElement(new MultiEvent("a")));
-		trace.add(new MultiTraceElement(new MultiEvent("b", "c")));
-		trace.add(new MultiTraceElement(new MultiEvent("a", "b", "c"), new MultiEvent("d", "e")));
+		List<PrefixTreeElement> trace = new ArrayList<PrefixTreeElement>();
+		trace.add(new PrefixTreeElement(new MultiEvent("a")));
+		trace.add(new PrefixTreeElement(new MultiEvent("b", "c")));
+		trace.add(new PrefixTreeElement(new MultiEvent("a", "b", "c"), new MultiEvent("d", "e")));
 		renderer.render(trace, System.out);
 	}
 }
