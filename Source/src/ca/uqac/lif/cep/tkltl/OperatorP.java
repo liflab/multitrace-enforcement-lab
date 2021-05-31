@@ -20,8 +20,7 @@ package ca.uqac.lif.cep.tkltl;
 import java.util.Queue;
 
 import ca.uqac.lif.cep.SynchronousProcessor;
-import ca.uqac.lif.cep.ltl.Troolean;
-import ca.uqac.lif.cep.ltl.Troolean.Value;
+import multitrace.Quadrilean.Value;
 import multitrace.Endpoint;
 
 /**
@@ -114,7 +113,7 @@ public class OperatorP extends SynchronousProcessor
 		 * @param y The second integer
 		 * @return The result of the comparison
 		 */
-		public Troolean.Value compare(int x, int y);
+		public Value compare(int x, int y);
 	}
 	
 	/**
@@ -127,9 +126,9 @@ public class OperatorP extends SynchronousProcessor
 		{
 			if (x == y)
 			{
-				return Troolean.Value.TRUE;
+				return Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Value.FALSE;
 		}		
 	}
 	
@@ -143,9 +142,9 @@ public class OperatorP extends SynchronousProcessor
 		{
 			if (x > y)
 			{
-				return Troolean.Value.TRUE;
+				return Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Value.FALSE;
 		}		
 	}
 }

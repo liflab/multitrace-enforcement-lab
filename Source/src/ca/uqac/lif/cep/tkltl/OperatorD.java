@@ -23,8 +23,8 @@ import java.util.Queue;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.SynchronousProcessor;
-import ca.uqac.lif.cep.ltl.Troolean;
 import multitrace.Endpoint;
+import multitrace.Quadrilean;
 
 /**
  * The <i>D</i> operator of TK-LTL.
@@ -56,12 +56,12 @@ public class OperatorD extends SynchronousProcessor
 	/**
 	 * The endpoints for the left-hand side condition of the operator.
 	 */
-	protected List<Endpoint<Object,Troolean.Value>> m_phiEndpoints;
+	protected List<Endpoint<Object,Quadrilean.Value>> m_phiEndpoints;
 	
 	/**
 	 * The endpoints for the right-hand side condition of the operator.
 	 */
-	protected List<Endpoint<Object,Troolean.Value>> m_psiEndpoints;
+	protected List<Endpoint<Object,Quadrilean.Value>> m_psiEndpoints;
 	
 	/**
 	 * Creates a new instance of the processor.
@@ -73,8 +73,8 @@ public class OperatorD extends SynchronousProcessor
 		super(1, 1);
 		m_phi = phi;
 		m_psi = psi;
-		m_phiEndpoints = new ArrayList<Endpoint<Object,Troolean.Value>>();
-		m_psiEndpoints = new ArrayList<Endpoint<Object,Troolean.Value>>();
+		m_phiEndpoints = new ArrayList<Endpoint<Object,Quadrilean.Value>>();
+		m_psiEndpoints = new ArrayList<Endpoint<Object,Quadrilean.Value>>();
 		m_phiIndex = -1;
 		m_psiIndex = -1;
 	}
@@ -89,12 +89,12 @@ public class OperatorD extends SynchronousProcessor
 		}
 		if (m_phiIndex < 0)
 		{
-			m_phiEndpoints.add(new Endpoint<Object,Troolean.Value>(m_phi.duplicate()));
+			m_phiEndpoints.add(new Endpoint<Object,Quadrilean.Value>(m_phi.duplicate()));
 			for (int i = 0; i < m_phiEndpoints.size(); i++)
 			{
-				Endpoint<Object,Troolean.Value> ep = m_phiEndpoints.get(i);
-				Troolean.Value v = ep.getVerdict(input[0]);
-				if (v == Troolean.Value.TRUE)
+				Endpoint<Object,Quadrilean.Value> ep = m_phiEndpoints.get(i);
+				Quadrilean.Value v = ep.getVerdict(input[0]);
+				if (v == Quadrilean.Value.TRUE)
 				{
 					// We found the first index where phi holds
 					m_phiIndex = m_phiEndpoints.size() - i;
@@ -105,12 +105,12 @@ public class OperatorD extends SynchronousProcessor
 		}
 		if (m_phiIndex >= 0 && m_psiIndex < 0)
 		{
-			m_psiEndpoints.add(new Endpoint<Object,Troolean.Value>(m_psi.duplicate()));
+			m_psiEndpoints.add(new Endpoint<Object,Quadrilean.Value>(m_psi.duplicate()));
 			for (int i = 0; i < m_phiEndpoints.size(); i++)
 			{
-				Endpoint<Object,Troolean.Value> ep = m_phiEndpoints.get(i);
-				Troolean.Value v = ep.getVerdict(input[0]);
-				if (v == Troolean.Value.TRUE)
+				Endpoint<Object,Quadrilean.Value> ep = m_phiEndpoints.get(i);
+				Quadrilean.Value v = ep.getVerdict(input[0]);
+				if (v == Quadrilean.Value.TRUE)
 				{
 					// We found the first index where psi holds
 					m_psiIndex = m_phiIndex + i;
@@ -141,11 +141,11 @@ public class OperatorD extends SynchronousProcessor
 		{
 			d.m_phiIndex = m_phiIndex;
 			d.m_psiIndex = m_psiIndex;
-			for (Endpoint<Object,Troolean.Value> ep : m_phiEndpoints)
+			for (Endpoint<Object,Quadrilean.Value> ep : m_phiEndpoints)
 			{
 				d.m_phiEndpoints.add(ep.duplicate());
 			}
-			for (Endpoint<Object,Troolean.Value> ep : m_psiEndpoints)
+			for (Endpoint<Object,Quadrilean.Value> ep : m_psiEndpoints)
 			{
 				d.m_psiEndpoints.add(ep.duplicate());
 			}

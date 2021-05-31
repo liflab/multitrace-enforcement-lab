@@ -19,8 +19,8 @@ package ca.uqac.lif.cep.tkltl;
 
 import java.util.Queue;
 
-import ca.uqac.lif.cep.ltl.Troolean;
 import multitrace.Endpoint;
+import multitrace.Quadrilean;
 
 /**
  * The &forall;<sub>~<i>k</i></sub> operator of TK-LTL.
@@ -58,18 +58,18 @@ public class OperatorForAll extends OperatorP
 	@Override
 	protected boolean compute(Object[] input, Queue<Object[]> output)
 	{
-		Troolean.Value to_output = Troolean.Value.INCONCLUSIVE;
+		Quadrilean.Value to_output = Quadrilean.Value.P_FALSE;
 		if (m_seenFalse)
 		{
-			to_output = Troolean.Value.FALSE;
+			to_output = Quadrilean.Value.FALSE;
 		}
 		else
 		{
-			Troolean.Value v = m_comparison.compare(m_countEndpoint.getVerdict(input[0]), m_k);
-			if (v == Troolean.Value.FALSE)
+			Quadrilean.Value v = m_comparison.compare(m_countEndpoint.getVerdict(input[0]), m_k);
+			if (v == Quadrilean.Value.FALSE)
 			{
 				m_seenFalse = true;
-				to_output = Troolean.Value.FALSE;
+				to_output = Quadrilean.Value.FALSE;
 			}
 		}
 		output.add(new Object[] {to_output});

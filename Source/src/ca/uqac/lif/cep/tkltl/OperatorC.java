@@ -24,9 +24,8 @@ import java.util.Queue;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.SynchronousProcessor;
-import ca.uqac.lif.cep.ltl.Troolean;
-import ca.uqac.lif.cep.ltl.Troolean.Value;
 import multitrace.Endpoint;
+import multitrace.Quadrilean;
 
 /**
  * The <i>C</i> operator of TK-LTL.
@@ -41,7 +40,7 @@ public class OperatorC extends SynchronousProcessor
 	/**
 	 * The endpoints for each suffix of the input trace.
 	 */
-	protected List<Endpoint<Object,Troolean.Value>> m_endpoints;
+	protected List<Endpoint<Object,Quadrilean.Value>> m_endpoints;
 	
 	/**
 	 * The number of suffixes where phi is not false.
@@ -51,42 +50,42 @@ public class OperatorC extends SynchronousProcessor
 	/**
 	 * The value to look for in each endpoint
 	 */
-	protected Troolean.Value m_value;
+	protected Quadrilean.Value m_value;
 	
 	/**
 	 * Creates a new count operator.
 	 * @param phi The formula to evaluate
 	 */
-	public OperatorC(Processor phi, Troolean.Value v)
+	public OperatorC(Processor phi, Quadrilean.Value v)
 	{
 		super(1, 1);
 		m_value = v;
 		m_count = 0;
 		m_phi = phi;
-		m_endpoints = new ArrayList<Endpoint<Object,Troolean.Value>>();
+		m_endpoints = new ArrayList<Endpoint<Object,Quadrilean.Value>>();
 	}
 
 	@Override
 	protected boolean compute(Object[] input, Queue<Object[]> output)
 	{
-		Endpoint<Object,Troolean.Value> ep = new Endpoint<Object,Troolean.Value>(m_phi.duplicate());
+		Endpoint<Object,Quadrilean.Value> ep = new Endpoint<Object,Quadrilean.Value>(m_phi.duplicate());
 		m_endpoints.add(ep);
-		Iterator<Endpoint<Object,Troolean.Value>> it = m_endpoints.iterator();
+		Iterator<Endpoint<Object,Quadrilean.Value>> it = m_endpoints.iterator();
 		int cnt = 0;
 		while (it.hasNext())
 		{
-			Endpoint<Object,Troolean.Value> e = it.next();
-			Troolean.Value v = e.getVerdict(input[0]);
+			Endpoint<Object,Quadrilean.Value> e = it.next();
+			Quadrilean.Value v = e.getVerdict(input[0]);
 			if (v == m_value)
 			{
 				cnt++;
 			}
-			if (v != Value.INCONCLUSIVE)
+			if (v == Quadrilean.Value.TRUE || v == Quadrilean.Value.FALSE)
 			{
 				it.remove();
 			}
 		}
-		if (m_value == Value.INCONCLUSIVE)
+		if (m_value != Quadrilean.Value.TRUE && m_value != Quadrilean.Value.FALSE)
 		{
 			m_count = cnt;
 		}
@@ -105,7 +104,7 @@ public class OperatorC extends SynchronousProcessor
 		if (with_state)
 		{
 			c.m_count = m_count;
-			for (Endpoint<Object,Troolean.Value> ep : m_endpoints)
+			for (Endpoint<Object,Quadrilean.Value> ep : m_endpoints)
 			{
 				c.m_endpoints.add(ep.duplicate());
 			}
