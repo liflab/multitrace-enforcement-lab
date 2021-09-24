@@ -33,6 +33,8 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 	protected Endpoint<Event,Number> m_rankingCheckpoint;
 
 	protected Processor m_rho;
+	
+	protected float m_bestScore;
 
 	public Selector(Processor rho)
 	{
@@ -41,6 +43,7 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		m_rankingCheckpoint = new Endpoint<Event,Number>(m_rho.duplicate());
 		m_rankingEndpoint = new Endpoint<Event,Number>(m_rho.duplicate());
 		m_elements = new ArrayList<PrefixTreeElement>();
+		m_bestScore = 0;
 	}
 
 	@Override
@@ -59,7 +62,10 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
 		List<PrefixTreeElement> elems = (List<PrefixTreeElement>) inputs[0];
-		m_elements.addAll(elems);
+		for (PrefixTreeElement pte : elems)
+		{
+			m_elements.add(pte);
+		}
 		if (!decide())
 		{
 			return true;
@@ -116,6 +122,7 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		}
 		if (best_endpoint != null)
 		{
+			m_bestScore = best_score;
 			List<Event> to_output = best_endpoint.getInputTrace();
 			// The sequence of uni-events to produce has been computed
 			for (Event e : to_output)
@@ -130,12 +137,24 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		m_elements.clear();
 		return true;
 	}
+	
+	@Override
+	public void reset()
+	{
+		super.reset();
+		m_bestScore = 0;
+	}
 
 	@Override
 	public Processor duplicate(boolean with_state)
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public float getScore()
+	{
+		return m_bestScore;
 	}
 
 	protected abstract boolean decide();

@@ -43,9 +43,11 @@ public class FilterTest
 	protected static final MultiEvent B = new MultiEvent(b);
 	protected static final MultiEvent AB = new MultiEvent(a, b);
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testNoTwoB1()
 	{
+		List<PrefixTreeElement> ptes;
 		IntervalFilter mmon = new IntervalFilter(new NoTwoBs(), 1);
 		SinkLast sink = new SinkLast();
 		Connector.connect(mmon, sink);
@@ -53,7 +55,9 @@ public class FilterTest
 		PrefixTreeElement mte = null;
 		Pushable p = mmon.getPushableInput();
 		p.push(getList(new PrefixTreeElement(AB)));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(1, mte.size());
 		me = mte.get(0);
 		assertEquals(2, me.size());
@@ -61,7 +65,9 @@ public class FilterTest
 		applied.add(b);
 		mmon.apply(applied);
 		p.push(getList(new PrefixTreeElement(AB)));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(1, mte.size());
 		me = mte.get(0); // [a,#]
 		assertEquals(2, me.size());
@@ -69,9 +75,11 @@ public class FilterTest
 		assertTrue(me.contains(Event.DIAMOND));
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testNoTwoB2()
 	{
+		List<PrefixTreeElement> ptes;
 		IntervalFilter mmon = new IntervalFilter(new NoTwoBs(), 2);
 		SinkLast sink = new SinkLast();
 		Connector.connect(mmon, sink);
@@ -79,10 +87,17 @@ public class FilterTest
 		PrefixTreeElement mte = null;
 		Pushable p = mmon.getPushableInput();
 		p.push(getList(new PrefixTreeElement(AB)));
-		mte = (PrefixTreeElement) sink.getLast()[0];
-		assertEquals(0, mte.size());
+		assertNull(sink.getLast()); // Nothing pushed yet
 		p.push(getList(new PrefixTreeElement(AB, AB)));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(2, ptes.size());
+		mte = ptes.get(0);
+		assertEquals(1, mte.size());
+		me = mte.get(0); // [a,b]
+		assertEquals(2, me.size());
+		assertTrue(me.contains(a));
+		assertTrue(me.contains(b));
+		mte = ptes.get(1);
 		assertEquals(2, mte.size());
 		me = mte.get(0); // [a,b]
 		assertEquals(2, me.size());
@@ -96,16 +111,23 @@ public class FilterTest
 		applied.add(a);
 		applied.add(b);
 		mmon.apply(applied);
+		sink.reset();
 		p.push(getList(new PrefixTreeElement(AB)));
-		mte = (PrefixTreeElement) sink.getLast()[0];
-		assertEquals(0, mte.size());
+		assertNull(sink.getLast()); // Nothing pushed yet
 		p.push(getList(new PrefixTreeElement(AB, AB)));
-		mte = (PrefixTreeElement) sink.getLast()[0];
-		assertEquals(2, mte.size());
-		me = mte.get(1); // [a,#]
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(2, ptes.size());
+		mte = ptes.get(0);
+		assertEquals(1, mte.size());
+		me = mte.get(0); // [a,#]
 		assertEquals(2, me.size());
 		assertTrue(me.contains(a));
 		assertTrue(me.contains(Event.DIAMOND));
+		mte = ptes.get(1);
+		me = mte.get(0); // [#,#]
+		assertEquals(2, me.size());
+		assertTrue(me.contains(a));
+		assertTrue(me.contains(b));
 		me = mte.get(1); // [#,#]
 		assertEquals(2, me.size());
 		assertFalse(me.contains(a));

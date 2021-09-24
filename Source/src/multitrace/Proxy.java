@@ -106,4 +106,9 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public void restartTree()
+	{
+		
+	}
 }

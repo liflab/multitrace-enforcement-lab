@@ -39,6 +39,7 @@ import multitrace.Proxy;
  */
 public class ProxyTest
 {
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test1()
 	{
@@ -47,39 +48,56 @@ public class ProxyTest
 		Connector.connect(a, sink);
 		Pushable p = a.getPushableInput();
 		p.push(Event.get("a"));
+		List<PrefixTreeElement> ptes;
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
 		PrefixTreeElement mte;
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		mte = ptes.get(0);
 		assertEquals(1, mte.size());
 		p.push(Event.get("a"));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(1, mte.size());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test2()
 	{
+		List<PrefixTreeElement> ptes;
+		PrefixTreeElement mte;
 		Proxy a = new Proxy(new AddB());
 		SinkLast sink = new SinkLast();
 		Connector.connect(a, sink);
 		Pushable p = a.getPushableInput();
 		p.push(Event.get("a"));
-		PrefixTreeElement mte;
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(1, mte.size());
 		p.push(Event.get("a"));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(2, mte.size());
 		p.push(Event.get("b"));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(4, mte.size());
 		p.push(Event.get("a"));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(4, mte.size());
 		List<Event> applied = new ArrayList<Event>();
 		applied.add(Event.get("a"));
 		a.apply(applied);
 		p.push(Event.get("a"));
-		mte = (PrefixTreeElement) sink.getLast()[0];
+		ptes = (List<PrefixTreeElement>) sink.getLast()[0];
+		assertEquals(1, ptes.size());
+		mte = ptes.get(0);
 		assertEquals(1, mte.size());
 	}
 	

@@ -32,6 +32,8 @@ import multitrace.IntervalSelector;
 import multitrace.MultiEvent;
 import multitrace.PrefixTreeElement;
 
+import static multitrace.test.FilterTest.getList;
+
 /**
  * Unit tests for the {@link IntervalSelector} processor.
  */
@@ -52,13 +54,13 @@ public class SelectorTest
 		Connector.connect(s, sink);
 		Event e = null;
 		Pushable p = s.getPushableInput();
-		p.push(new PrefixTreeElement(A));
+		p.push(getList(new PrefixTreeElement(A)));
 		e = (Event) sink.getLast()[0];
 		assertEquals("a", e.getLabel());
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		e = (Event) sink.getLast()[0];
 		assertEquals("b", e.getLabel());
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		e = (Event) sink.getLast()[0];
 		assertEquals("b", e.getLabel());
 	}
@@ -71,12 +73,12 @@ public class SelectorTest
 		Queue<Object> queue = sink.getQueue();
 		Connector.connect(s, sink);
 		Pushable p = s.getPushableInput();
-		p.push(new PrefixTreeElement(A));
+		p.push(getList(new PrefixTreeElement(A)));
 		assertEquals(0, queue.size());
-		p.push(new PrefixTreeElement(AB));
+		p.push(getList(new PrefixTreeElement(AB)));
 		assertEquals(2, queue.size());
 		queue.clear();
-		p.push(new PrefixTreeElement(eB, eB));
+		p.push(getList(new PrefixTreeElement(eB, eB)));
 		assertEquals(0, queue.size());
 	}
 }
