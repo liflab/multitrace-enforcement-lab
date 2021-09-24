@@ -17,10 +17,44 @@
  */
 package multitrace;
 
+import ca.uqac.lif.cep.functions.UnaryFunction;
+
 public class Quadrilean
 {
 	/**
 	 * The four possible truth values.
 	 */
 	public enum Value {TRUE, P_TRUE, P_FALSE, FALSE}
+	
+	public static class QuadrileanCast extends UnaryFunction<Object,Quadrilean.Value>
+	{
+		public static final QuadrileanCast instance = new QuadrileanCast();
+		
+		protected QuadrileanCast()
+		{
+			super(Object.class, Quadrilean.Value.class);
+		}
+
+		@Override
+		public Value getValue(Object x)
+		{
+			if (x instanceof Boolean)
+			{
+				Boolean b = (Boolean) x;
+				if (b)
+				{
+					return Quadrilean.Value.TRUE;
+				}
+				return Quadrilean.Value.FALSE;
+			}
+			return Quadrilean.Value.FALSE;
+		}
+		
+		@Override
+		public QuadrileanCast duplicate(boolean with_state)
+		{
+			return this;
+		}
+		
+	}
 }

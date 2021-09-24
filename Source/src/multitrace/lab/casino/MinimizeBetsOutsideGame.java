@@ -22,31 +22,31 @@ import ca.uqac.lif.cep.GroupProcessor;
 import ca.uqac.lif.cep.functions.ApplyFunction;
 import ca.uqac.lif.cep.functions.FunctionTree;
 import ca.uqac.lif.cep.functions.StreamVariable;
-import ca.uqac.lif.cep.ltl.Troolean;
-import ca.uqac.lif.cep.ltl.TrooleanCast;
 import ca.uqac.lif.cep.tkltl.OperatorC;
 import ca.uqac.lif.cep.tmf.Fork;
 import ca.uqac.lif.cep.util.Booleans;
 import ca.uqac.lif.cep.util.Equals;
+import multitrace.Quadrilean;
+import multitrace.Quadrilean.QuadrileanCast;
 
 public class MinimizeBetsOutsideGame extends OperatorC
 {
 	public MinimizeBetsOutsideGame()
 	{
-		super(getCondition(), Troolean.Value.TRUE);
+		super(getCondition(), Quadrilean.Value.TRUE);
 	}
 
 	protected static GroupProcessor getCondition()
 	{
 		GroupProcessor n_eq_e = new GroupProcessor(1, 1);
 		Fork f = new Fork(3);
-		OperatorC new_game = new OperatorC(new ApplyFunction(CasinoFunction.isStart), Troolean.Value.TRUE);
+		OperatorC new_game = new OperatorC(new ApplyFunction(CasinoFunction.isStart), Quadrilean.Value.TRUE);
 		Connector.connect(f, 0, new_game, 0);
-		OperatorC end_game = new OperatorC(new ApplyFunction(CasinoFunction.isEnd), Troolean.Value.TRUE);
+		OperatorC end_game = new OperatorC(new ApplyFunction(CasinoFunction.isEnd), Quadrilean.Value.TRUE);
 		Connector.connect(f, 1, end_game, 0);
 		ApplyFunction is_bet = new ApplyFunction(CasinoFunction.isBet);
 		Connector.connect(f, 2, is_bet, 0);
-		ApplyFunction equals = new ApplyFunction(new FunctionTree(TrooleanCast.instance,
+		ApplyFunction equals = new ApplyFunction(new FunctionTree(QuadrileanCast.instance,
 				new FunctionTree(Booleans.and, StreamVariable.Z,
 						new FunctionTree(Equals.instance, StreamVariable.X, StreamVariable.Y))));
 		Connector.connect(new_game, 0, equals, 0);

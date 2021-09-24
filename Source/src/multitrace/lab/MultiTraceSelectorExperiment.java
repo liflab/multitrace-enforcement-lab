@@ -26,7 +26,7 @@ import ca.uqac.lif.labpal.Experiment;
 import ca.uqac.lif.labpal.ExperimentException;
 import multitrace.AppendToMultiTrace;
 import multitrace.PrefixTreeElement;
-import multitrace.MultiTraceSelector;
+import multitrace.Selector;
 
 /**
  * Experiment that runs a trace of multi-events through a multi-trace
@@ -74,9 +74,9 @@ public class MultiTraceSelectorExperiment extends Experiment
 	/**
 	 * The multi-trace selector to evaluate.
 	 */
-	protected transient MultiTraceSelector m_selector;
+	protected transient Selector m_selector;
 	
-	public MultiTraceSelectorExperiment(Source event_source, MultiTraceSelector mts, int interval)
+	public MultiTraceSelectorExperiment(Source event_source, Selector mts, int interval)
 	{
 		super();
 		describe(INTERVAL, "The number of buffered input events between each output of the selector");

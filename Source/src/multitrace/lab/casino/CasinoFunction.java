@@ -18,8 +18,8 @@
 package multitrace.lab.casino;
 
 import ca.uqac.lif.cep.functions.UnaryFunction;
-import ca.uqac.lif.cep.ltl.Troolean;
-import ca.uqac.lif.cep.ltl.Troolean.Value;
+import multitrace.Quadrilean;
+import multitrace.Quadrilean.Value;
 
 public class CasinoFunction
 {
@@ -33,11 +33,11 @@ public class CasinoFunction
 	
 	public static final CasinoPaid casinoPaid = new CasinoPaid();
 
-	public static class IsBet extends UnaryFunction<CasinoEvent,Troolean.Value>
+	public static class IsBet extends UnaryFunction<CasinoEvent,Quadrilean.Value>
 	{
 		protected IsBet()
 		{
-			super(CasinoEvent.class, Troolean.Value.class);
+			super(CasinoEvent.class, Quadrilean.Value.class);
 		}
 
 		@Override
@@ -45,9 +45,9 @@ public class CasinoFunction
 		{
 			if (e instanceof CasinoEvent.Bet)
 			{
-				return Troolean.Value.TRUE;
+				return Quadrilean.Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Quadrilean.Value.FALSE;
 		}
 
 		@Override
@@ -57,11 +57,11 @@ public class CasinoFunction
 		}
 	}
 
-	public static class IsStartGame extends UnaryFunction<CasinoEvent,Troolean.Value>
+	public static class IsStartGame extends UnaryFunction<CasinoEvent,Quadrilean.Value>
 	{
 		protected IsStartGame()
 		{
-			super(CasinoEvent.class, Troolean.Value.class);
+			super(CasinoEvent.class, Quadrilean.Value.class);
 		}
 
 		@Override
@@ -69,9 +69,9 @@ public class CasinoFunction
 		{
 			if (e instanceof CasinoEvent.StartGame)
 			{
-				return Troolean.Value.TRUE;
+				return Quadrilean.Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Quadrilean.Value.FALSE;
 		}
 
 		@Override
@@ -81,11 +81,11 @@ public class CasinoFunction
 		}
 	}
 
-	public static class IsEndGame extends UnaryFunction<CasinoEvent,Troolean.Value>
+	public static class IsEndGame extends UnaryFunction<CasinoEvent,Quadrilean.Value>
 	{
 		protected IsEndGame()
 		{
-			super(CasinoEvent.class, Troolean.Value.class);
+			super(CasinoEvent.class, Quadrilean.Value.class);
 		}
 
 		@Override
@@ -93,9 +93,9 @@ public class CasinoFunction
 		{
 			if (e instanceof CasinoEvent.EndGame)
 			{
-				return Troolean.Value.TRUE;
+				return Quadrilean.Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Quadrilean.Value.FALSE;
 		}
 
 		@Override
@@ -105,11 +105,11 @@ public class CasinoFunction
 		}
 	}
 
-	public static class CasinoPays extends UnaryFunction<CasinoEvent,Troolean.Value>
+	public static class CasinoPays extends UnaryFunction<CasinoEvent,Quadrilean.Value>
 	{
 		protected CasinoPays()
 		{
-			super(CasinoEvent.class, Troolean.Value.class);
+			super(CasinoEvent.class, Quadrilean.Value.class);
 		}
 
 		@Override
@@ -117,9 +117,9 @@ public class CasinoFunction
 		{
 			if (e instanceof CasinoEvent.Pay && ((CasinoEvent.Pay) e).getFrom().compareTo("casino") == 0)
 			{
-				return Troolean.Value.TRUE;
+				return Quadrilean.Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Quadrilean.Value.FALSE;
 		}
 
 		@Override
@@ -129,11 +129,11 @@ public class CasinoFunction
 		}
 	}
 	
-	public static class CasinoPaid extends UnaryFunction<CasinoEvent,Troolean.Value>
+	public static class CasinoPaid extends UnaryFunction<CasinoEvent,Quadrilean.Value>
 	{
 		protected CasinoPaid()
 		{
-			super(CasinoEvent.class, Troolean.Value.class);
+			super(CasinoEvent.class, Quadrilean.Value.class);
 		}
 
 		@Override
@@ -141,9 +141,9 @@ public class CasinoFunction
 		{
 			if (e instanceof CasinoEvent.Pay && ((CasinoEvent.Pay) e).getTo().compareTo("casino") == 0)
 			{
-				return Troolean.Value.TRUE;
+				return Quadrilean.Value.TRUE;
 			}
-			return Troolean.Value.FALSE;
+			return Quadrilean.Value.FALSE;
 		}
 
 		@Override

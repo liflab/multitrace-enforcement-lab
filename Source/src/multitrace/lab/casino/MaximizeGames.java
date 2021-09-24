@@ -20,10 +20,10 @@ package multitrace.lab.casino;
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.GroupProcessor;
 import ca.uqac.lif.cep.functions.ApplyFunction;
-import ca.uqac.lif.cep.ltl.Troolean;
 import ca.uqac.lif.cep.tkltl.OperatorC;
 import ca.uqac.lif.cep.tmf.Fork;
 import ca.uqac.lif.cep.util.Numbers;
+import multitrace.Quadrilean;
 
 public class MaximizeGames extends GroupProcessor
 {
@@ -31,8 +31,8 @@ public class MaximizeGames extends GroupProcessor
 	{
 		super(1, 1);
 		Fork f = new Fork();
-		OperatorC start = new OperatorC(new ApplyFunction(CasinoFunction.isStart), Troolean.Value.TRUE);
-		OperatorC end = new OperatorC(new ApplyFunction(CasinoFunction.isEnd), Troolean.Value.TRUE);
+		OperatorC start = new OperatorC(new ApplyFunction(CasinoFunction.isStart), Quadrilean.Value.TRUE);
+		OperatorC end = new OperatorC(new ApplyFunction(CasinoFunction.isEnd), Quadrilean.Value.TRUE);
 		Connector.connect(f, 0, start, 0);
 		Connector.connect(f, 1, end, 0);
 		ApplyFunction minus = new ApplyFunction(Numbers.subtraction);
