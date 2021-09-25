@@ -49,9 +49,9 @@ public class PrefixTreeMultiTraceSelector extends MultiTraceSelector
 	public PrefixTreeMultiTraceSelector(Processor monitor)
 	{
 		super(monitor);
-		m_pushable = m_monitor.getPushableInput();
+		m_pushable = m_rho.getPushableInput();
 		BlackHole hole = new BlackHole();
-		Connector.connect(m_monitor, hole);
+		Connector.connect(m_rho, hole);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class PrefixTreeMultiTraceSelector extends MultiTraceSelector
 			return true;
 		}
 		List<EventEndpoint<Number>> endpoints = new ArrayList<EventEndpoint<Number>>();
-		endpoints.add(new EventEndpoint<Number>(m_monitor.duplicate(true)));
+		endpoints.add(new EventEndpoint<Number>(m_rho.duplicate(true)));
 		List<EventEndpoint<Number>> new_endpoints = new ArrayList<EventEndpoint<Number>>();
 		Iterator<MultiTraceElement> it = m_pending.iterator();
 		while (it.hasNext())
@@ -136,13 +136,13 @@ public class PrefixTreeMultiTraceSelector extends MultiTraceSelector
 	public void reset()
 	{
 		super.reset();
-		m_monitor.reset();
+		m_rho.reset();
 	}
 	
 	@Override
 	public PrefixTreeMultiTraceSelector duplicate(boolean with_state) 
 	{
-		PrefixTreeMultiTraceSelector s = new PrefixTreeMultiTraceSelector(m_monitor.duplicate(with_state));
+		PrefixTreeMultiTraceSelector s = new PrefixTreeMultiTraceSelector(m_rho.duplicate(with_state));
 		if (with_state)
 		{
 			s.m_prefix.addAll(m_prefix);

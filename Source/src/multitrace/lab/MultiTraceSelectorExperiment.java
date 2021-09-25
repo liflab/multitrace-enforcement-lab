@@ -21,12 +21,15 @@ import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Pullable;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.tmf.BlackHole;
+import ca.uqac.lif.cep.tmf.Passthrough;
 import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.labpal.Experiment;
 import ca.uqac.lif.labpal.ExperimentException;
 import multitrace.AppendToMultiTrace;
 import multitrace.PrefixTreeElement;
+import multitrace.Proxy;
 import multitrace.Selector;
+import multitrace.WrapEvent;
 
 /**
  * Experiment that runs a trace of multi-events through a multi-trace
@@ -96,7 +99,8 @@ public class MultiTraceSelectorExperiment extends Experiment
 		BlackHole hole = new BlackHole();
 		Connector.connect(m_selector, hole);
 		Pushable s_p = m_selector.getPushableInput();
-		AppendToMultiTrace atm = new AppendToMultiTrace();
+		Proxy atm = new Proxy(new Passthrough());
+		//AppendToMultiTrace atm = new AppendToMultiTrace();
 		Connector.connect(m_source, atm);
 		Pullable q_p = atm.getPullableOutput();
 		long start = System.currentTimeMillis();

@@ -28,11 +28,13 @@ import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.UniformProcessor;
+import ca.uqac.lif.cep.functions.ApplyFunction;
 import ca.uqac.lif.cep.tmf.SinkLast;
 import multitrace.Event;
 import multitrace.MultiEvent;
 import multitrace.PrefixTreeElement;
 import multitrace.Proxy;
+import multitrace.WrapEvent;
 
 /**
  * Unit tests for {@link AppendToMultiTrace}.
@@ -43,7 +45,7 @@ public class ProxyTest
 	@Test
 	public void test1()
 	{
-		Proxy a = new Proxy(new WrapEvent());
+		Proxy a = new Proxy(new ApplyFunction(WrapEvent.instance));
 		SinkLast sink = new SinkLast();
 		Connector.connect(a, sink);
 		Pushable p = a.getPushableInput();
@@ -126,31 +128,6 @@ public class ProxyTest
 		public Processor duplicate(boolean with_state)
 		{
 			return new AddB();
-		}
-		
-	}
-	
-	public static class WrapEvent extends UniformProcessor
-	{
-		public WrapEvent()
-		{
-			super(1, 1);
-		}
-
-		@Override
-		protected boolean compute(Object[] input, Object[] output)
-		{
-			List<Event> evts = new ArrayList<Event>();
-			evts.add((Event) input[0]);
-			MultiEvent me = new MultiEvent(evts);
-			output[0] = me;
-			return true;
-		}
-
-		@Override
-		public Processor duplicate(boolean with_state)
-		{
-			return new WrapEvent();
 		}
 		
 	}

@@ -41,11 +41,6 @@ public abstract class MultiTraceSelector extends Selector
 	protected List<MultiTraceElement> m_pending;
 
 	/**
-	 * A processor that produces a score ranking uni-traces.
-	 */
-	protected Processor m_monitor;
-
-	/**
 	 * The enforcement pipeline of which this selector is part of, if any.
 	 */
 	protected EnforcementPipeline m_outerPipeline;

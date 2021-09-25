@@ -43,7 +43,7 @@ public class BruteForceMultiTraceSelector extends MultiTraceSelector
 		int best_score = Integer.MIN_VALUE;
 		for (List<Event> trace : traces)
 		{
-			Endpoint<Event,Number> ep = new Endpoint<Event,Number>(m_monitor.duplicate(true));
+			Endpoint<Event,Number> ep = new Endpoint<Event,Number>(m_rho.duplicate(true));
 			for (Event e : trace)
 			{
 				ep.getStream(e);
@@ -56,7 +56,7 @@ public class BruteForceMultiTraceSelector extends MultiTraceSelector
 		}
 		if (best != null)
 		{
-			m_monitor = best.m_processor;
+			m_rho = best.m_processor;
 			List<Event> to_output = best.getInputTrace();
 			for (Event e : to_output)
 			{
