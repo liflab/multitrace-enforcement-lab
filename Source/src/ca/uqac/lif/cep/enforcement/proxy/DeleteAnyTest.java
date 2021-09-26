@@ -52,11 +52,11 @@ public class DeleteAnyTest
 		mte = list.get(0);
 		assertEquals(1, mte.size()); // [a]
 		mte = list.get(1);
-		assertEquals(0, mte.size()); // []
+		assertEquals(1, mte.size()); // [deleted a]
 		p.push(B);
 		list = (List<MultiTraceElement>) queue.remove();
 		assertEquals(1, list.size());
 		mte = list.get(0);
-		assertEquals(1, mte.size()); // [a]
+		assertEquals(1, mte.size()); // [b]
 	}
 }

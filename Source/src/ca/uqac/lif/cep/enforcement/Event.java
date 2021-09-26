@@ -46,6 +46,16 @@ public class Event
 	protected static final transient Map<String,Event> s_pool = new HashMap<String,Event>();
 	
 	/**
+	 * A pool of cached added uni-events.
+	 */
+	protected static final transient Map<String,AddedEvent> s_addedPool = new HashMap<String,AddedEvent>();
+	
+	/**
+	 * A pool of cached deleted uni-events.
+	 */
+	protected static final transient Map<String,DeletedEvent> s_deletedPool = new HashMap<String,DeletedEvent>();
+	
+	/**
 	 * Gets an instance of event with given label. This method should be used to
 	 * get event instances, to avoid a proliferation of distinct instances with
 	 * the same label. 
@@ -60,6 +70,42 @@ public class Event
 		}
 		Event e = new Event(label);
 		s_pool.put(label, e);
+		return e;
+	}
+	
+	/**
+	 * Gets an instance of added event with given label. This method should be
+	 * used to get event instances, to avoid a proliferation of distinct
+	 * instances with the same label. 
+	 * @param label The label
+	 * @return The event
+	 */
+	public static AddedEvent getAdded(String label)
+	{
+		if (s_addedPool.containsKey(label))
+		{
+			return s_addedPool.get(label);
+		}
+		AddedEvent e = new AddedEvent(label);
+		s_addedPool.put(label, e);
+		return e;
+	}
+	
+	/**
+	 * Gets an instance of deleted event with given label. This method should be
+	 * used to get event instances, to avoid a proliferation of distinct
+	 * instances with the same label. 
+	 * @param label The label
+	 * @return The event
+	 */
+	public static DeletedEvent getDeleted(String label)
+	{
+		if (s_deletedPool.containsKey(label))
+		{
+			return s_deletedPool.get(label);
+		}
+		DeletedEvent e = new DeletedEvent(label);
+		s_deletedPool.put(label, e);
 		return e;
 	}
 
@@ -106,6 +152,44 @@ public class Event
 			return false;
 		}
 		return ((Event) o).m_label.compareTo(m_label) == 0;
+	}
+	
+	/**
+	 * Interface indicating that an event has been added by a proxy.
+	 */
+	public interface Added
+	{
+		
+	}
+	
+	/**
+	 * Interface indicating that an event has been deleted by a proxy.
+	 */
+	public interface Deleted
+	{
+		
+	}
+	
+	/**
+	 * Wrapper around an event indicating it has been added.
+	 */
+	public static class AddedEvent extends Event implements Added
+	{
+		protected AddedEvent(String label)
+		{
+			super(label);
+		}
+	}
+	
+	/**
+	 * Wrapper around an event indicating it has been deleted.
+	 */
+	public static class DeletedEvent extends Event implements Deleted
+	{
+		protected DeletedEvent(String label)
+		{
+			super(label);
+		}
 	}
 
 }

@@ -137,7 +137,7 @@ public class StateMooreMachine extends MooreMachine
 		@Override
 		public boolean isFired(Object[] inputs, Context context)
 		{
-			if (inputs[0] instanceof Event && ((Event) inputs[0]).equals(m_event))
+			if (inputs[0] instanceof Event && ((Event) inputs[0]).getLabel().compareTo(m_event.getLabel()) == 0)
 			{
 				return true;
 			}

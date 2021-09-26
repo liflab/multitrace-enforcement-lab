@@ -17,25 +17,30 @@
  */
 package enforcementlab;
 
-import static enforcementlab.MultiTraceProvider.SE_CASINO_RANDOM;
-import static enforcementlab.MultiTraceSelectorExperiment.EVENT_SOURCE;
-import static enforcementlab.MultiTraceSelectorExperiment.INTERVAL;
-import static enforcementlab.MultiTraceSelectorExperiment.SCORING_FORMULA;
-import static enforcementlab.MultiTraceSelectorExperiment.TECHNIQUE;
-import static enforcementlab.MultiTraceSelectorExperiment.TIME;
-import static enforcementlab.MultiTraceSelectorExperimentFactory.T_BRUTE_FORCE;
-import static enforcementlab.MultiTraceSelectorExperimentFactory.T_PREFIX_TREE;
+import static enforcementlab.TraceProvider.SE_ABC;
+import static enforcementlab.TraceProvider.SE_CASINO_RANDOM;
+import static enforcementlab.GateExperiment.EVENT_SOURCE;
+import static enforcementlab.GateExperiment.INTERVAL;
+import static enforcementlab.GateExperiment.POLICY;
+import static enforcementlab.GateExperiment.PROXY;
+import static enforcementlab.GateExperiment.SCORING_FORMULA;
+import static enforcementlab.GateExperiment.TIME;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_BETS;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_GAINS;
+import static enforcementlab.ScoringProcessorProvider.SC_MINIMIZE_CHANGES;
 
+import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
+import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.labpal.Laboratory;
 import ca.uqac.lif.labpal.LatexNamer;
 import ca.uqac.lif.labpal.Region;
 import ca.uqac.lif.labpal.table.ExperimentTable;
+import ca.uqac.lif.mtnp.plot.gnuplot.Scatterplot;
 import ca.uqac.lif.mtnp.table.ExpandAsColumns;
 import ca.uqac.lif.mtnp.table.TransformedTable;
 import ca.uqac.lif.synthia.random.RandomBoolean;
 import ca.uqac.lif.synthia.random.RandomFloat;
+import enforcementlab.abc.Property1;
 
 public class MainLab extends Laboratory
 {
@@ -55,13 +60,35 @@ public class MainLab extends Laboratory
 		// The factory that generates the experiments
 		TraceProvider p_trace = new TraceProvider(r_bool, r_float);
 		ScoringProcessorProvider p_score = new ScoringProcessorProvider();
-		MultiTraceSelectorExperimentFactory factory = new MultiTraceSelectorExperimentFactory(this, p_trace, p_score);
+		ProxyProvider p_proxy = new ProxyProvider(p_trace);
+		PolicyProvider p_policy = new PolicyProvider();
+		GateExperimentFactory factory = new GateExperimentFactory(this, p_policy, p_proxy, p_trace, p_score);
 		
 		// A big region with the lab's parameters
 		Region big_r = new Region();
+		{
+			big_r.add(EVENT_SOURCE, SE_ABC);
+			big_r.add(POLICY, Property1.NAME);
+			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME);
+			big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
+			big_r.add(INTERVAL, 1, 3, 5, 7);
+			for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA, INTERVAL))
+			{
+				GateExperiment exp = factory.get(in_r);
+				if (exp == null)
+				{
+					continue;
+				}
+				ExperimentTable et_events = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.OUTPUT_EVENTS);
+				et_events.add(exp);
+				add(et_events);
+				Scatterplot p_events = new Scatterplot(et_events);
+				add(p_events);
+			}
+		}
 		
 		// Comparing the impact of interval length on time for brute-force vs. prefix tree
-		{
+		/*{
 			Region r = new Region();
 			r.add(EVENT_SOURCE, SE_CASINO_RANDOM);
 			r.add(SCORING_FORMULA, SC_MAXIMIZE_BETS, SC_MAXIMIZE_GAINS);
@@ -86,7 +113,7 @@ public class MainLab extends Laboratory
 					et_time.add(e);
 				}
 			}
-		}
+		}*/
 	}
 	
 	public static void main(String[] args)

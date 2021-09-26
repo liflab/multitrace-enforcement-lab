@@ -19,6 +19,7 @@ package enforcementlab;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.labpal.Region;
+import enforcementlab.abc.Property1;
 
 public class PolicyProvider
 {
@@ -31,7 +32,8 @@ public class PolicyProvider
 		}
 		switch (policy)
 		{
-		
+		case Property1.NAME:
+			return new Property1();
 		}
 		return null;
 	}

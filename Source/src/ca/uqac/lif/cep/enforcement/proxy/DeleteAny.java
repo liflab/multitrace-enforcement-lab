@@ -72,8 +72,9 @@ public class DeleteAny extends UniformProcessor
 		out_list.add(mte1);
 		if (m_deletable.contains(in_e))
 		{
-			// Not one of the events we can delete
+			// One of the events we can delete
 			MultiTraceElement mte2 = new MultiTraceElement();
+			mte2.add(new MultiEvent(Event.getDeleted(in_e.getLabel())));
 			out_list.add(mte2);
 		}
 		outputs[0] = out_list;

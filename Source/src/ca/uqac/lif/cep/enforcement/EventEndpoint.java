@@ -17,9 +17,12 @@
  */
 package ca.uqac.lif.cep.enforcement;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 import ca.uqac.lif.cep.Processor;
+import ca.uqac.lif.cep.enforcement.Event.Deleted;
 
 public class EventEndpoint<T> extends Endpoint<Event,T>
 {
@@ -30,10 +33,49 @@ public class EventEndpoint<T> extends Endpoint<Event,T>
 	}
 	
 	@SuppressWarnings("unchecked")
+	public T getLastValue(Event e)
+	{
+		m_inputTrace.add(e);
+		if (e != null && !e.getLabel().isEmpty() && !(e instanceof Deleted))
+		{
+			m_pushable.push(e);
+		}
+		Queue<Object> q = m_sink.getQueue();
+		if (q.isEmpty())
+		{
+			return m_lastValue;
+		}
+		T out = null;
+		while (!q.isEmpty())
+		{
+			out = (T) q.remove();
+		}
+		m_lastValue = out;
+		return out;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<T> getStream(Event e)
+	{
+		m_inputTrace.add(e);
+		if (e != null && !e.getLabel().isEmpty() && !(e instanceof Deleted))
+		{
+			m_pushable.push(e);
+		}
+		Queue<Object> q = m_sink.getQueue();
+		List<T> list = new ArrayList<T>(q.size());
+		while (!q.isEmpty())
+		{
+			list.add((T) q.remove());
+		}
+		return list;
+	}
+	
+	@SuppressWarnings("unchecked")
 	public T getVerdict(Event e)
 	{
 		m_inputTrace.add(e);
-		if (!e.getLabel().isEmpty())
+		if (!e.getLabel().isEmpty() && !(e instanceof Deleted))
 		{
 			m_pushable.push(e);
 		}

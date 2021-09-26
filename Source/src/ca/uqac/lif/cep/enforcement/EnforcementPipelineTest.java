@@ -27,15 +27,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import ca.uqac.lif.cep.Connector;
-import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.SynchronousProcessor;
 import ca.uqac.lif.cep.UniformProcessor;
-import ca.uqac.lif.cep.enforcement.ProxyTest.AddB;
 import ca.uqac.lif.cep.enforcement.StateMooreMachine.EventTransition;
 import ca.uqac.lif.cep.functions.Constant;
 import ca.uqac.lif.cep.functions.TurnInto;
-import ca.uqac.lif.cep.tmf.Filter;
 import ca.uqac.lif.cep.tmf.QueueSink;
 import ca.uqac.lif.cep.tmf.SinkLast;
 
@@ -136,19 +133,21 @@ public class EnforcementPipelineTest
 		@Override
 		protected boolean compute(Object[] input, Queue<Object[]> output)
 		{
+			MultiTraceElement mte = new MultiTraceElement();
 			{
 				List<Event> evts = new ArrayList<Event>();
 				evts.add(Event.EPSILON);
 				evts.add(Event.get("b"));
 				MultiEvent me = new MultiEvent(evts);
-				output.add(new Object[] {me});
+				mte.add(me);
 			}
 			{
 				List<Event> evts = new ArrayList<Event>();
 				evts.add((Event) input[0]);
 				MultiEvent me = new MultiEvent(evts);
-				output.add(new Object[] {me});
+				mte.add(me);
 			}
+			output.add(new Object[] {mte});
 			return true;
 		}
 

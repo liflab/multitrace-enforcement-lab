@@ -34,27 +34,27 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 	 * The processor producing multi-events.
 	 */
 	protected Processor m_pi;
-	
+
 	/**
 	 * The processor in its last checkpointed state
 	 */
 	protected Processor m_checkpoint;
-	
+
 	/**
 	 * The endpoint used to generate the prefix tree elements.
 	 */
-	protected Endpoint<Event,MultiEvent> m_endpoint;
-	
+	protected Endpoint<Event,MultiTraceElement> m_endpoint;
+
 	/**
 	 * The endpoint used to update the checkpoint.
 	 */
-	protected Endpoint<Event,MultiEvent> m_checkpointEndpoint;
-	
+	protected Endpoint<Event,MultiTraceElement> m_checkpointEndpoint;
+
 	/**
 	 * A counter for the number of children to generate in the next event.
 	 */
 	protected int m_children;
-	
+
 	/**
 	 * Creates a new proxy.
 	 * @param proxy The processor producing multi-events
@@ -65,8 +65,8 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 		m_children = 1;
 		m_pi = pi;
 		m_checkpoint = m_pi.duplicate();
-		m_endpoint = new Endpoint<Event,MultiEvent>(m_pi.duplicate());
-		m_checkpointEndpoint = new Endpoint<Event,MultiEvent>(m_checkpoint);
+		m_endpoint = new Endpoint<Event,MultiTraceElement>(m_pi.duplicate());
+		m_checkpointEndpoint = new Endpoint<Event,MultiTraceElement>(m_checkpoint);
 	}
 
 	@Override
@@ -77,26 +77,29 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 		{
 			m_checkpointEndpoint.getLastValue(e);
 		}
-		m_endpoint = new Endpoint<Event,MultiEvent>(m_checkpointEndpoint.m_processor.duplicate(true));
+		m_endpoint = new Endpoint<Event,MultiTraceElement>(m_checkpointEndpoint.m_processor.duplicate(true));
 	}
 
 	@Override
 	protected boolean compute(Object[] inputs, Queue<Object[]> outputs)
 	{
-		List<MultiEvent> l_me = m_endpoint.getStream((Event) inputs[0]);
+		List<MultiTraceElement> l_me = m_endpoint.getStream((Event) inputs[0]);
 		List<PrefixTreeElement> ptes = new ArrayList<PrefixTreeElement>();
-		for (int j = 0; j < l_me.size(); j++)
+		for (MultiTraceElement mte : l_me)
 		{
-			PrefixTreeElement mte = new PrefixTreeElement();
-			MultiEvent me = l_me.get(j);
-			for (int i = 0; i < m_children; i++)
+			for (int j = 0; j < mte.size(); j++)
 			{
-				mte.add(me);
+				PrefixTreeElement pte = new PrefixTreeElement();
+				MultiEvent me = mte.get(j);
+				for (int i = 0; i < m_children; i++)
+				{
+					pte.add(me);
+				}
+				ptes.add(pte);
+				m_children *= me.size();
 			}
-			ptes.add(mte);
-			m_children *= me.size();
+			outputs.add(new Object[] {ptes});
 		}
-		outputs.add(new Object[] {ptes});
 		return true;
 	}
 
@@ -106,9 +109,9 @@ public class Proxy extends SynchronousProcessor implements Checkpointable
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	public void restartTree()
 	{
-		
+
 	}
 }

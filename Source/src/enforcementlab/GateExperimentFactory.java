@@ -92,6 +92,7 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 		}
 		Selector mts = new IntervalSelector(score, interval);
 		GateExperiment ge = new GateExperiment();
+		ge.setInput(INTERVAL, interval);
 		ge.setSource(src);
 		ge.setPolicy(mon, r.getString(POLICY));
 		ge.setProxy(prox, r.getString(PROXY));

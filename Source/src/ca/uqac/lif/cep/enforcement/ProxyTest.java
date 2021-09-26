@@ -115,7 +115,9 @@ public class ProxyTest
 				evts.add(Event.get("b"));
 			}
 			MultiEvent me = new MultiEvent(evts);
-			output[0] = me;
+			MultiTraceElement mte = new MultiTraceElement();
+			mte.add(me);
+			output[0] = mte;
 			return true;
 		}
 

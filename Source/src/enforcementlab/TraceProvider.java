@@ -21,6 +21,7 @@ import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.labpal.Region;
 import ca.uqac.lif.synthia.Picker;
+import ca.uqac.lif.synthia.util.ElementPicker;
 import enforcementlab.casino.CasinoEvent;
 import enforcementlab.casino.CasinoEventPicker;
 
@@ -67,6 +68,16 @@ public class TraceProvider
 	public Source get(Region r)
 	{
 		String name = r.getString(EVENT_SOURCE);
+		if (name.compareTo(SE_ABC) == 0)
+		{
+			
+			ElementPicker<Event> picker = new ElementPicker<Event>(m_randomFloat);
+			picker.add(Event.get("a"), 0.33);
+			picker.add(Event.get("b"), 0.33);
+			picker.add(Event.get("c"), 0.34);
+			PickerSource<Event> ps = new PickerSource<Event>(picker, 100);
+			return ps;
+		}
 		if (name.compareTo(SE_CASINO_RANDOM) == 0)
 		{
 			CasinoEventPicker picker = new CasinoEventPicker(m_coin, m_randomFloat, "a", "b", "c", "d");

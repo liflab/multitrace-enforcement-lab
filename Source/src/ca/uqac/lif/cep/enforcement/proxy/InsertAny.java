@@ -24,6 +24,7 @@ import java.util.List;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.UniformProcessor;
 import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.Event.AddedEvent;
 import ca.uqac.lif.cep.enforcement.MultiEvent;
 import ca.uqac.lif.cep.enforcement.MultiTraceElement;
 
@@ -50,7 +51,18 @@ public class InsertAny extends UniformProcessor
 	public InsertAny(List<Event> events)
 	{
 		super(1, 1);
-		m_insertable = events;
+		m_insertable = new ArrayList<Event>();
+		for (Event e : events)
+		{
+			if (e instanceof AddedEvent)
+			{
+				m_insertable.add((AddedEvent) e);
+			}
+			else
+			{
+				m_insertable.add(Event.getAdded(e.getLabel()));
+			}
+		}
 	}
 	
 	/**
@@ -66,22 +78,15 @@ public class InsertAny extends UniformProcessor
 	protected boolean compute(Object[] inputs, Object[] outputs)
 	{
 		Event in_e = (Event) inputs[0];
-		List<MultiTraceElement> out_list = new ArrayList<MultiTraceElement>();
-		{
-			// First possibility: don't insert anything
-			MultiTraceElement mte = new MultiTraceElement();
-			mte.add(new MultiEvent(in_e));
-			out_list.add(mte);
-		}
-		// Second possibility: insert every possible event before the input event
+		MultiTraceElement mte = new MultiTraceElement();
+		MultiEvent me = new MultiEvent(Event.EPSILON);
 		for (Event e : m_insertable)
 		{
-			MultiTraceElement mte = new MultiTraceElement();
-			mte.add(new MultiEvent(e));
-			mte.add(new MultiEvent(in_e));
-			out_list.add(mte);
+			me.add(e);
 		}
-		outputs[0] = out_list;
+		mte.add(me);
+		mte.add(new MultiEvent(in_e));
+		outputs[0] = mte;
 		return true;
 	}
 

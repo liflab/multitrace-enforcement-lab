@@ -17,15 +17,13 @@
  */
 package ca.uqac.lif.cep.enforcement;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import ca.uqac.lif.cep.functions.UnaryFunction;
 
 /**
- * Wraps an event into a multi-event containing that single event.
+ * Wraps an event into a multi-trace element containing that single event.
  */
-public class WrapEvent extends UnaryFunction<Event,MultiEvent>
+public class WrapEvent extends UnaryFunction<Event,MultiTraceElement>
 {
 	/**
 	 * A single visible instance of the function.
@@ -37,7 +35,7 @@ public class WrapEvent extends UnaryFunction<Event,MultiEvent>
 	 */
 	protected WrapEvent()
 	{
-		super(Event.class, MultiEvent.class);
+		super(Event.class, MultiTraceElement.class);
 	}
 
 	@Override
@@ -47,12 +45,12 @@ public class WrapEvent extends UnaryFunction<Event,MultiEvent>
 	}
 
 	@Override
-	public MultiEvent getValue(Event e) 
+	public MultiTraceElement getValue(Event e) 
 	{
-		List<Event> evts = new ArrayList<Event>();
-		evts.add(e);
-		MultiEvent me = new MultiEvent(evts);
-		return me;
+		MultiEvent me = new MultiEvent(e);
+		MultiTraceElement mte = new MultiTraceElement();
+		mte.add(me);
+		return mte;
 	}
 
 }

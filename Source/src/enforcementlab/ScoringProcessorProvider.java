@@ -20,12 +20,18 @@ package enforcementlab;
 import static enforcementlab.MultiTraceSelectorExperiment.SCORING_FORMULA;
 
 import ca.uqac.lif.cep.Processor;
+import ca.uqac.lif.cep.enforcement.selector.CountModifications;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.casino.MaximizeBets;
 import enforcementlab.casino.MaximizeGains;
 
 public class ScoringProcessorProvider
 {
+	/**
+	 * The "minimize changes" scoring formula.
+	 */
+	public static final transient String SC_MINIMIZE_CHANGES = "Minimize changes";
+	
 	/**
 	 * The "maximize gains" scoring formula in the casino scenario.
 	 */
@@ -45,6 +51,10 @@ public class ScoringProcessorProvider
 	public Processor get(Region r)
 	{
 		String property = r.getString(SCORING_FORMULA);
+		if (property.compareTo(SC_MINIMIZE_CHANGES) == 0)
+		{
+			return new CountModifications();
+		}
 		if (property.compareTo(SC_MAXIMIZE_GAINS) == 0)
 		{
 			return new MaximizeGains();
