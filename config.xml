@@ -98,5 +98,17 @@
         <zip>https://github.com/liflab/synthia/releases/download/v0.2/synthia-0.2.zip</zip>
       </files>
     </dependency>
+    <dependency>
+      <!--
+      Azrael. Used to make memory measurements.
+      -->
+      <name>Azrael</name>
+      <classname>ca.uqac.lif.azrael.size.SizePrinter</classname>
+      <bundle>true</bundle>
+      <files>
+        <jar>https://github.com/sylvainhalle/Azrael/releases/download/v2.0.3/azrael-core.jar</jar>
+        <jar>https://github.com/sylvainhalle/Azrael/releases/download/v2.0.3/azrael-size.jar</jar>
+      </files>
+    </dependency>
   </dependencies>
 </build>

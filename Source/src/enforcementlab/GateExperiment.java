@@ -19,11 +19,15 @@ package enforcementlab;
 
 import java.util.Queue;
 
+import ca.uqac.lif.azrael.PrintException;
+import ca.uqac.lif.azrael.size.SizePrinter;
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pullable;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.Event.Added;
+import ca.uqac.lif.cep.enforcement.Event.Deleted;
 import ca.uqac.lif.cep.enforcement.Filter;
 import ca.uqac.lif.cep.enforcement.Gate;
 import ca.uqac.lif.cep.enforcement.Proxy;
@@ -71,6 +75,21 @@ public class GateExperiment extends Experiment
 	public static final transient String OUTPUT_EVENTS = "Output events";
 	
 	/**
+	 * The name of parameter "inserted events".
+	 */
+	public static final transient String INSERTED_EVENTS = "Inserted events";
+	
+	/**
+	 * The name of parameter "deleted events".
+	 */
+	public static final transient String DELETED_EVENTS = "Deleted events";
+	
+	/**
+	 * The name of parameter "corrective actions".
+	 */
+	public static final transient String CORRECTIVE_ACTIONS = "Corrective actions";
+	
+	/**
 	 * The name of parameter "interval".
 	 */
 	public static final transient String TIME = "Time";
@@ -79,6 +98,21 @@ public class GateExperiment extends Experiment
 	 * The name of parameter "interval".
 	 */
 	public static final transient String INTERVAL = "Interval";
+	
+	/**
+	 * The name of parameter "memory".
+	 */
+	public static final transient String MEMORY = "Memory";
+	
+	/**
+	 * The name of parameter "throughput".
+	 */
+	public static final transient String THROUGHPUT = "Throughput";
+	
+	/**
+	 * The name of parameter "enforcement switches".
+	 */
+	public static final transient String ENFORCEMENT_SWITCHES = "Enforcement switches";
 	
 	/**
 	 * The source of events.
@@ -115,10 +149,18 @@ public class GateExperiment extends Experiment
 		describe(PROXY, "The proxy applying corrective modifications");
 		describe(SCORING_FORMULA, "The scoring formula used to rank traces");
 		describe(INPUT_EVENTS, "The number of input events given to the pipeline");
+		describe(INSERTED_EVENTS, "The number of events inserted by the pipeline");
+		describe(DELETED_EVENTS, "The number of events deleted by the pipeline");
 		describe(OUTPUT_EVENTS, "The number of output events produced by the pipeline");
 		describe(TIME, "The time (in milliseconds) taken by the selector to produce the output trace");
+		describe(MEMORY, "The memory consumed by the enforcement pipeline");
+		describe(THROUGHPUT, "The average number of events per second ingested by the enforcement pipeline");
+		describe(CORRECTIVE_ACTIONS, "The total number of events that have been added or deleted");
 		write(INPUT_EVENTS, new JsonList());
 		write(OUTPUT_EVENTS, new JsonList());
+		write(INSERTED_EVENTS, new JsonList());
+		write(DELETED_EVENTS, new JsonList());
+		write(MEMORY, new JsonList());
 	}
 	
 	/**
@@ -189,23 +231,57 @@ public class GateExperiment extends Experiment
 		QueueSink sink = new QueueSink();
 		Queue<?> queue = sink.getQueue();
 		Connector.connect(g, sink);
+		m_source.reset();
 		Pullable s_p = m_source.getPullableOutput();
 		Pushable g_p = g.getPushableInput();
-		int in_c = 0, out_c = 0;
+		int in_c = 0, out_c = 0, ins_c = 0, del_c = 0;
 		JsonList in_l = (JsonList) read(INPUT_EVENTS);
 		JsonList out_l = (JsonList) read(OUTPUT_EVENTS);
+		JsonList ins_l = (JsonList) read(INSERTED_EVENTS);
+		JsonList del_l = (JsonList) read(DELETED_EVENTS);
+		JsonList mem_l = (JsonList) read(MEMORY);
 		long start = System.currentTimeMillis();
+		SizePrinter sp = new SizePrinter();
+		sp.ignoreAccessChecks(true);
 		while (s_p.hasNext())
 		{
 			in_c++;
 			Event e = (Event) s_p.next();
 			g_p.push(e);
 			out_c += queue.size();
-			queue.remove();
+			int mem = 0;
+			while (!queue.isEmpty())
+			{
+				Event q_e = (Event) queue.remove();
+				if (q_e instanceof Added)
+				{
+					ins_c++;
+				}
+				if (q_e instanceof Deleted)
+				{
+					del_c++;
+					out_c--;
+				}
+			}
+			sp.reset();
+			try
+			{
+				mem = sp.print(m_filter.getElements()).intValue();
+			}
+			catch (PrintException e1)
+			{
+				throw new ExperimentException(e1);
+			}
 			in_l.add(in_c);
 			out_l.add(out_c);
+			ins_l.add(ins_c);
+			del_l.add(del_c);
+			mem_l.add(mem);
 		}
 		long end = System.currentTimeMillis();
 		write(TIME, end - start);
+		write(THROUGHPUT,  in_c * 100 / (end - start));
+		write(CORRECTIVE_ACTIONS, ins_c + del_c);
+		write(ENFORCEMENT_SWITCHES, g.getEnforcementSwitches());
 	}
 }

@@ -62,6 +62,11 @@ public class Gate extends SynchronousProcessor
 	protected QueueSink m_sink;
 	
 	/**
+	 * A black hole to receive the output of the monitor checkpoint.
+	 */
+	protected BlackHole m_hole;
+	
+	/**
 	 * An endpoint to evaluate the input trace by the monitor, in order to
 	 * determine if it is valid.
 	 */
@@ -78,6 +83,11 @@ public class Gate extends SynchronousProcessor
 	 */
 	protected List<Event> m_prefix;
 	
+	/**
+	 * The number of times the gate has switched to the enforcement pipeline.
+	 */
+	protected int m_enforcementSwitches = 0;
+	
 	public Gate(Processor mu, Proxy p, Filter f, Selector s)
 	{
 		super(1, 1);
@@ -93,8 +103,8 @@ public class Gate extends SynchronousProcessor
 		Connector.connect(m_selector, m_sink);
 		m_prefix = new ArrayList<Event>();
 		m_muCheckpoint = m_mu.duplicate(true);
-		BlackHole hole = new BlackHole();
-		Connector.connect(m_muCheckpoint, hole);
+		m_hole = new BlackHole();
+		Connector.connect(m_muCheckpoint, m_hole);
 	}
 
 	@Override
@@ -115,6 +125,7 @@ public class Gate extends SynchronousProcessor
 			m_selector.apply(m_prefix);
 			m_prefix.clear();
 			m_muCheckpoint = m_mu.duplicate(true);
+			Connector.connect(m_muCheckpoint, m_hole);
 			return true;
 		}
 		// Wait for the enforcement pipeline to output something
@@ -123,6 +134,7 @@ public class Gate extends SynchronousProcessor
 		if (!q.isEmpty())
 		{
 			// The pipeline produced a sequence: output it
+			m_enforcementSwitches++;
 			List<Event> to_output = new ArrayList<Event>();
 			while (!q.isEmpty())
 			{
@@ -142,11 +154,23 @@ public class Gate extends SynchronousProcessor
 		}
 		return true;
 	}
+	
+	public int getEnforcementSwitches()
+	{
+		return m_enforcementSwitches;
+	}
+	
+	@Override
+	public void reset()
+	{
+		super.reset();
+		m_enforcementSwitches = 0;
+	}
 
 	@Override
 	public Processor duplicate(boolean with_state)
 	{
-		// TODO Auto-generated method stub
+		// Not needed at the moment
 		return null;
 	}
 }

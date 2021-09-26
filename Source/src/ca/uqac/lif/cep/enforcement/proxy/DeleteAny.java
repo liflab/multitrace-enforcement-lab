@@ -66,18 +66,14 @@ public class DeleteAny extends UniformProcessor
 	protected boolean compute(Object[] inputs, Object[] outputs)
 	{
 		Event in_e = (Event) inputs[0];
-		List<MultiTraceElement> out_list = new ArrayList<MultiTraceElement>();
-		MultiTraceElement mte1 = new MultiTraceElement();
-		mte1.add(new MultiEvent(in_e));
-		out_list.add(mte1);
+		MultiTraceElement mte = new MultiTraceElement();
+		MultiEvent me = new MultiEvent(in_e);
 		if (m_deletable.contains(in_e))
 		{
-			// One of the events we can delete
-			MultiTraceElement mte2 = new MultiTraceElement();
-			mte2.add(new MultiEvent(Event.getDeleted(in_e.getLabel())));
-			out_list.add(mte2);
+			me.add(Event.getDeleted(in_e.getLabel()));
 		}
-		outputs[0] = out_list;
+		mte.add(me);
+		outputs[0] = mte;
 		return true;
 	}
 

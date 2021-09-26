@@ -23,6 +23,7 @@ import java.util.Queue;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.SynchronousProcessor;
+import ca.uqac.lif.cep.enforcement.Event.Deleted;
 import ca.uqac.lif.cep.enforcement.Quadrilean.Value;
 
 /**
@@ -57,7 +58,7 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 	{
 		for (Event e : events)
 		{
-			if (e != Event.EPSILON)
+			if (e != null && e != Event.EPSILON && !(e instanceof Deleted))
 			{
 				m_checkpointEndpoint.getLastValue(e);
 			}
@@ -72,10 +73,6 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 	{
 		List<PrefixTreeElement> elems = (List<PrefixTreeElement>) inputs[0];
 		m_elements.addAll(elems);
-		if (!decide())
-		{
-			return true;
-		}
 		List<PrefixTreeElement> out_list = new ArrayList<PrefixTreeElement>();
 		List<Endpoint<Event,Value>> endpoints = new ArrayList<Endpoint<Event,Value>>();
 		PrefixTreeElement first = m_elements.get(0);
@@ -86,6 +83,10 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		}
 		for (int j = 0; j < m_elements.size(); j++)
 		{
+			if (!decide())
+			{
+				return true;
+			}
 			PrefixTreeElement mte = m_elements.get(j);
 			List<Endpoint<Event,Value>> new_endpoints = new ArrayList<Endpoint<Event,Value>>();
 			PrefixTreeElement out_element = new PrefixTreeElement();
@@ -98,7 +99,7 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 				{
 					Endpoint<Event,Quadrilean.Value> new_ep = ep.duplicate();
 					Quadrilean.Value verdict = new_ep.getLastValue();
-					if (e != Event.EPSILON)
+					if (e != null && e != Event.EPSILON && !(e instanceof Deleted))
 					{
 						verdict = new_ep.getLastValue(e);
 					}
@@ -128,6 +129,21 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		//m_elements.clear();
 		outputs.add(new Object[] {out_list});
 		return true;
+	}
+	
+	public List<PrefixTreeElement> getElements()
+	{
+		return m_elements;
+	}
+	
+	public int getSize()
+	{
+		int size = 0;
+		for (PrefixTreeElement pte : m_elements)
+		{
+			size += pte.getSize();
+		}
+		return size;
 	}
 
 	@Override

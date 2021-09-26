@@ -19,7 +19,6 @@ package ca.uqac.lif.cep.enforcement.proxy;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
 import java.util.Queue;
 
 import org.junit.Test;
@@ -27,6 +26,7 @@ import org.junit.Test;
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.MultiEvent;
 import ca.uqac.lif.cep.enforcement.MultiTraceElement;
 import ca.uqac.lif.cep.tmf.QueueSink;
 
@@ -35,28 +35,25 @@ public class DeleteAnyTest
 	public static final Event A = Event.get("a");
 	public static final Event B = Event.get("b");
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void test1()
 	{
-		List<MultiTraceElement> list;
 		MultiTraceElement mte;
+		MultiEvent me;
 		DeleteAny proxy = new DeleteAny(A);
 		QueueSink sink = new QueueSink();
 		Connector.connect(proxy, sink);
 		Pushable p = proxy.getPushableInput();
 		Queue<?> queue = sink.getQueue();
 		p.push(A);
-		list = (List<MultiTraceElement>) queue.remove();
-		assertEquals(2, list.size());
-		mte = list.get(0);
-		assertEquals(1, mte.size()); // [a]
-		mte = list.get(1);
-		assertEquals(1, mte.size()); // [deleted a]
+		mte = (MultiTraceElement) queue.remove();
+		assertEquals(1, mte.size());
+		me = mte.get(0); 
+		assertEquals(2, me.size()); // [a, deleted a]
 		p.push(B);
-		list = (List<MultiTraceElement>) queue.remove();
-		assertEquals(1, list.size());
-		mte = list.get(0);
-		assertEquals(1, mte.size()); // [b]
+		mte = (MultiTraceElement) queue.remove();
+		assertEquals(1, mte.size()); 
+		me = mte.get(0); 
+		assertEquals(1, me.size()); // [b]
 	}
 }

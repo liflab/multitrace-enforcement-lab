@@ -53,5 +53,15 @@ public class PrefixTreeElement extends ArrayList<MultiEvent>
 			add(e);
 		}
 	}
+	
+	public int getSize()
+	{
+		int size = 0;
+		for (MultiEvent me : this)
+		{
+			size += me.size();
+		}
+		return size;
+	}
 
 }

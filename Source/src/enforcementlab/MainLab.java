@@ -19,6 +19,8 @@ package enforcementlab;
 
 import static enforcementlab.TraceProvider.SE_ABC;
 import static enforcementlab.TraceProvider.SE_CASINO_RANDOM;
+import static enforcementlab.GateExperiment.CORRECTIVE_ACTIONS;
+import static enforcementlab.GateExperiment.ENFORCEMENT_SWITCHES;
 import static enforcementlab.GateExperiment.EVENT_SOURCE;
 import static enforcementlab.GateExperiment.INTERVAL;
 import static enforcementlab.GateExperiment.POLICY;
@@ -35,6 +37,7 @@ import ca.uqac.lif.labpal.Laboratory;
 import ca.uqac.lif.labpal.LatexNamer;
 import ca.uqac.lif.labpal.Region;
 import ca.uqac.lif.labpal.table.ExperimentTable;
+import ca.uqac.lif.mtnp.plot.TwoDimensionalPlot.Axis;
 import ca.uqac.lif.mtnp.plot.gnuplot.Scatterplot;
 import ca.uqac.lif.mtnp.table.ExpandAsColumns;
 import ca.uqac.lif.mtnp.table.TransformedTable;
@@ -72,18 +75,33 @@ public class MainLab extends Laboratory
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME);
 			big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
 			big_r.add(INTERVAL, 1, 3, 5, 7);
-			for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA, INTERVAL))
+			for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA))
 			{
-				GateExperiment exp = factory.get(in_r);
-				if (exp == null)
+				ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
+				et_ca.setTitle("Corrective actions depending on interval");
+				add(et_ca);
+				for (Region c_r : in_r.all(INTERVAL))
 				{
-					continue;
+					GateExperiment exp = factory.get(c_r);
+					if (exp == null)
+					{
+						continue;
+					}
+					ExperimentTable et_events = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.OUTPUT_EVENTS, GateExperiment.INSERTED_EVENTS, GateExperiment.DELETED_EVENTS);
+					et_events.add(exp);
+					add(et_events);
+					Scatterplot p_events = new Scatterplot(et_events);
+					p_events.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Output events");
+					add(p_events);
+					ExperimentTable et_mem = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.MEMORY);
+					et_mem.add(exp);
+					add(et_mem);
+					Scatterplot p_mem = new Scatterplot(et_mem);
+					p_mem.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Memory (B)");
+					add(p_mem);
+					et_ca.add(exp);					
 				}
-				ExperimentTable et_events = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.OUTPUT_EVENTS);
-				et_events.add(exp);
-				add(et_events);
-				Scatterplot p_events = new Scatterplot(et_events);
-				add(p_events);
+
 			}
 		}
 		
