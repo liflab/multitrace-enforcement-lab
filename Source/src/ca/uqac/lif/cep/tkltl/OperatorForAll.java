@@ -19,8 +19,8 @@ package ca.uqac.lif.cep.tkltl;
 
 import java.util.Queue;
 
-import multitrace.Endpoint;
-import multitrace.Quadrilean;
+import ca.uqac.lif.cep.enforcement.Endpoint;
+import ca.uqac.lif.cep.enforcement.Quadrilean;
 
 /**
  * The &forall;<sub>~<i>k</i></sub> operator of TK-LTL.

@@ -20,8 +20,8 @@ package ca.uqac.lif.cep.tkltl;
 import java.util.Queue;
 
 import ca.uqac.lif.cep.SynchronousProcessor;
-import multitrace.Quadrilean.Value;
-import multitrace.Endpoint;
+import ca.uqac.lif.cep.enforcement.Endpoint;
+import ca.uqac.lif.cep.enforcement.Quadrilean.Value;
 
 /**
  * Base class for all the quantifiers of TK-LTL. This class implements the

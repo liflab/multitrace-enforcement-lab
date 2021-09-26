@@ -24,8 +24,8 @@ import java.util.Queue;
 
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.SynchronousProcessor;
-import multitrace.Endpoint;
-import multitrace.Quadrilean;
+import ca.uqac.lif.cep.enforcement.Endpoint;
+import ca.uqac.lif.cep.enforcement.Quadrilean;
 
 /**
  * The <i>C</i> operator of TK-LTL.
