@@ -130,25 +130,26 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 				}
 			}
 		}
-		if (best_endpoint != null)
+		if (best_endpoint == null)
 		{
-			List<Event> to_output = best_endpoint.getInputTrace();
-			// The sequence of uni-events to produce has been computed
-			for (Event e : to_output)
-			{
-				// Output this best event, if it is not the empty event
-				if (!e.getLabel().isEmpty())
-				{
-					outputs.add(new Object[] {e});
-				}
-			}
-			// Notify the enforcement pipeline that events have been output
-			if (m_outerPipeline != null && !to_output.isEmpty())
-			{
-				m_outerPipeline.apply(to_output);
-			}
-			m_bestScore = best_endpoint.getLastValue().floatValue();
+			throw new CannotFixException();
 		}
+		List<Event> to_output = best_endpoint.getInputTrace();
+		// The sequence of uni-events to produce has been computed
+		for (Event e : to_output)
+		{
+			// Output this best event, if it is not the empty event
+			if (!e.getLabel().isEmpty())
+			{
+				outputs.add(new Object[] {e});
+			}
+		}
+		// Notify the enforcement pipeline that events have been output
+		if (m_outerPipeline != null && !to_output.isEmpty())
+		{
+			m_outerPipeline.apply(to_output);
+		}
+		m_bestScore = best_endpoint.getLastValue().floatValue();
 		m_elements.clear();
 		return true;
 	}

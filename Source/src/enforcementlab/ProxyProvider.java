@@ -22,6 +22,8 @@ import ca.uqac.lif.cep.enforcement.Proxy;
 import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
 import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.labpal.Region;
+import enforcementlab.abc.DeleteAnyA;
+import enforcementlab.abc.InsertAnyA;
 
 public class ProxyProvider
 {
@@ -46,8 +48,14 @@ public class ProxyProvider
 		case InsertAny.NAME:
 			p = new InsertAny(m_traceProvider.getAlphabet(r));
 			break;
+		case InsertAnyA.NAME:
+			p = new InsertAnyA();
+			break;
 		case DeleteAny.NAME:
 			p = new DeleteAny(m_traceProvider.getAlphabet(r));
+			break;
+		case DeleteAnyA.NAME:
+			p = new DeleteAnyA();
 			break;
 		}
 		if (p == null)

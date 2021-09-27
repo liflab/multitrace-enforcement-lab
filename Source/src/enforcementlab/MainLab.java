@@ -20,19 +20,26 @@ package enforcementlab;
 import static enforcementlab.TraceProvider.SE_ABC;
 import static enforcementlab.TraceProvider.SE_CASINO_RANDOM;
 import static enforcementlab.GateExperiment.CORRECTIVE_ACTIONS;
+import static enforcementlab.GateExperiment.DELETED_EVENTS;
 import static enforcementlab.GateExperiment.ENFORCEMENT_SWITCHES;
 import static enforcementlab.GateExperiment.EVENT_SOURCE;
+import static enforcementlab.GateExperiment.INPUT_EVENTS;
+import static enforcementlab.GateExperiment.INSERTED_EVENTS;
 import static enforcementlab.GateExperiment.INTERVAL;
+import static enforcementlab.GateExperiment.MEMORY;
+import static enforcementlab.GateExperiment.OUTPUT_EVENTS;
 import static enforcementlab.GateExperiment.POLICY;
 import static enforcementlab.GateExperiment.PROXY;
 import static enforcementlab.GateExperiment.SCORING_FORMULA;
 import static enforcementlab.GateExperiment.TIME;
+import static enforcementlab.GateExperiment.TIME_PER_EVENT;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_BETS;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_GAINS;
 import static enforcementlab.ScoringProcessorProvider.SC_MINIMIZE_CHANGES;
 
 import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
 import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
+import ca.uqac.lif.labpal.Group;
 import ca.uqac.lif.labpal.Laboratory;
 import ca.uqac.lif.labpal.LatexNamer;
 import ca.uqac.lif.labpal.Region;
@@ -43,9 +50,12 @@ import ca.uqac.lif.mtnp.table.ExpandAsColumns;
 import ca.uqac.lif.mtnp.table.TransformedTable;
 import ca.uqac.lif.synthia.random.RandomBoolean;
 import ca.uqac.lif.synthia.random.RandomFloat;
+import enforcementlab.abc.DeleteAnyA;
+import enforcementlab.abc.InsertAnyA;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 
+@SuppressWarnings("unused")
 public class MainLab extends Laboratory
 {
 
@@ -68,9 +78,12 @@ public class MainLab extends Laboratory
 		PolicyProvider p_policy = new PolicyProvider();
 		GateExperimentFactory factory = new GateExperimentFactory(this, p_policy, p_proxy, p_trace, p_score);
 
-		// A big region with the lab's parameters
-		Region big_r = new Region();
+		// General behavior
 		{
+			Group g = new Group("General behavior");
+			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
+			add(g);
+			Region big_r = new Region();
 			big_r.add(EVENT_SOURCE, SE_ABC);
 			big_r.add(POLICY, Property1.NAME, Property2.NAME);
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME);
@@ -82,7 +95,6 @@ public class MainLab extends Laboratory
 				String proxy = in_r.getString(PROXY);
 				String subtitle = "policy: " + policy + ", proxy: " + proxy;
 				ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
-				
 				et_ca.setTitle("Corrective actions depending on interval (" + subtitle + ")");
 				add(et_ca);
 				for (Region c_r : in_r.all(INTERVAL))
@@ -93,8 +105,9 @@ public class MainLab extends Laboratory
 					{
 						continue;
 					}
+					g.add(exp);
 					{
-						ExperimentTable et = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.OUTPUT_EVENTS, GateExperiment.INSERTED_EVENTS, GateExperiment.DELETED_EVENTS);
+						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, OUTPUT_EVENTS, INSERTED_EVENTS, DELETED_EVENTS);
 						et.setTitle("Input vs output events (" + subsubtitle + ")");
 						et.add(exp);
 						add(et);
@@ -105,7 +118,7 @@ public class MainLab extends Laboratory
 						add(plot);
 					}
 					{
-						ExperimentTable et = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.MEMORY);
+						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, MEMORY);
 						et.setTitle("Memory consumption (" + subsubtitle + ")");
 						et.add(exp);
 						add(et);
@@ -117,7 +130,7 @@ public class MainLab extends Laboratory
 						et_ca.add(exp);
 					}
 					{
-						ExperimentTable et = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.TIME_PER_EVENT);
+						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, TIME_PER_EVENT);
 						et.setTitle("Time per event (" + subsubtitle + ")");
 						et.add(exp);
 						add(et);
@@ -129,8 +142,16 @@ public class MainLab extends Laboratory
 						et_ca.add(exp);
 					}
 				}
-
 			}
+		}
+
+		// Impact of proxy precision
+		{
+			Group g = new Group("Impact of proxy precision");
+			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
+			add(g);
+			setupComparisonProxy(factory, g, Property1.NAME, DeleteAny.NAME, DeleteAnyA.NAME);
+			setupComparisonProxy(factory, g, Property1.NAME, InsertAny.NAME, InsertAnyA.NAME);
 		}
 
 		// Comparing the impact of interval length on time for brute-force vs. prefix tree
@@ -160,6 +181,61 @@ public class MainLab extends Laboratory
 				}
 			}
 		}*/
+	}
+	
+	/**
+	 * Sets up experiments, tables and plots that compare the action of two
+	 * proxies on the same policy. 
+	 * @param factory The factory used to obtain experiment instances
+	 * @param g The group to which experiments are to be added
+	 * @param policy The name of the policy to enforce
+	 * @param proxy1 The name of the first proxy
+	 * @param proxy2 The name of the second proxy
+	 */
+	protected void setupComparisonProxy(GateExperimentFactory factory, Group g, String policy, String proxy1, String proxy2)
+	{
+		Region big_r = new Region();
+		big_r.add(EVENT_SOURCE, SE_ABC);
+		big_r.add(POLICY, policy);
+		big_r.add(PROXY, proxy1, proxy2);
+		big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
+		big_r.add(INTERVAL, 8);
+		for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, SCORING_FORMULA, INTERVAL))
+		{
+			ExperimentTable et_events = new ExperimentTable(INPUT_EVENTS, PROXY, TIME_PER_EVENT);
+			{
+				et_events.setShowInList(false);
+				TransformedTable tt = new TransformedTable(new ExpandAsColumns(PROXY, TIME_PER_EVENT), et_events);
+				tt.setTitle("Impact of proxy precision on time (policy: " + policy + ")");
+				add(et_events, tt);
+				Scatterplot plot = new Scatterplot(tt);
+				plot.setTitle(tt.getTitle());
+				plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Time per event (ms)");
+				add(plot);
+			}
+			ExperimentTable et_memory = new ExperimentTable(INPUT_EVENTS, PROXY, MEMORY);
+			{
+				et_events.setShowInList(false);
+				TransformedTable tt = new TransformedTable(new ExpandAsColumns(PROXY, MEMORY), et_memory);
+				tt.setTitle("Impact of proxy precision on memory (policy: " + policy + ")");
+				add(et_events, tt);
+				Scatterplot plot = new Scatterplot(tt);
+				plot.setTitle(tt.getTitle());
+				plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Memory (B)");
+				add(plot);
+			}
+			for (Region p_r : in_r.all(PROXY))
+			{
+				GateExperiment exp = factory.get(p_r);
+				if (exp == null)
+				{
+					continue;
+				}
+				g.add(exp);
+				et_events.add(exp);
+				et_memory.add(exp);
+			}
+		}
 	}
 
 	public static void main(String[] args)
