@@ -44,6 +44,7 @@ import ca.uqac.lif.mtnp.table.TransformedTable;
 import ca.uqac.lif.synthia.random.RandomBoolean;
 import ca.uqac.lif.synthia.random.RandomFloat;
 import enforcementlab.abc.Property1;
+import enforcementlab.abc.Property2;
 
 public class MainLab extends Laboratory
 {
@@ -53,58 +54,85 @@ public class MainLab extends Laboratory
 	{
 		setTitle("A benchmark for multi-trace enforcement pipelines");
 		setAuthor("Rania Taleb, Sylvain Hallé and Raphaël Khoury");
-		
+
 		// Some random generators
 		RandomBoolean r_bool = new RandomBoolean();
 		r_bool.setSeed(getRandomSeed());
 		RandomFloat r_float = new RandomFloat();
 		r_float.setSeed(getRandomSeed());
-		
+
 		// The factory that generates the experiments
 		TraceProvider p_trace = new TraceProvider(r_bool, r_float);
 		ScoringProcessorProvider p_score = new ScoringProcessorProvider();
 		ProxyProvider p_proxy = new ProxyProvider(p_trace);
 		PolicyProvider p_policy = new PolicyProvider();
 		GateExperimentFactory factory = new GateExperimentFactory(this, p_policy, p_proxy, p_trace, p_score);
-		
+
 		// A big region with the lab's parameters
 		Region big_r = new Region();
 		{
 			big_r.add(EVENT_SOURCE, SE_ABC);
-			big_r.add(POLICY, Property1.NAME);
+			big_r.add(POLICY, Property1.NAME, Property2.NAME);
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME);
 			big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
-			big_r.add(INTERVAL, 1, 3, 5, 7);
+			big_r.add(INTERVAL, 2, 4, 8);
 			for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA))
 			{
+				String policy = in_r.getString(POLICY);
+				String proxy = in_r.getString(PROXY);
+				String subtitle = "policy: " + policy + ", proxy: " + proxy;
 				ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
-				et_ca.setTitle("Corrective actions depending on interval");
+				
+				et_ca.setTitle("Corrective actions depending on interval (" + subtitle + ")");
 				add(et_ca);
 				for (Region c_r : in_r.all(INTERVAL))
 				{
+					String subsubtitle = subtitle +  ", interval: " + c_r.getInt(INTERVAL);
 					GateExperiment exp = factory.get(c_r);
 					if (exp == null)
 					{
 						continue;
 					}
-					ExperimentTable et_events = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.OUTPUT_EVENTS, GateExperiment.INSERTED_EVENTS, GateExperiment.DELETED_EVENTS);
-					et_events.add(exp);
-					add(et_events);
-					Scatterplot p_events = new Scatterplot(et_events);
-					p_events.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Output events");
-					add(p_events);
-					ExperimentTable et_mem = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.MEMORY);
-					et_mem.add(exp);
-					add(et_mem);
-					Scatterplot p_mem = new Scatterplot(et_mem);
-					p_mem.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Memory (B)");
-					add(p_mem);
-					et_ca.add(exp);					
+					{
+						ExperimentTable et = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.OUTPUT_EVENTS, GateExperiment.INSERTED_EVENTS, GateExperiment.DELETED_EVENTS);
+						et.setTitle("Input vs output events (" + subsubtitle + ")");
+						et.add(exp);
+						add(et);
+						Scatterplot plot = new Scatterplot(et);
+						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Output events");
+						plot.withPoints(false);
+						plot.setTitle(et.getTitle());
+						add(plot);
+					}
+					{
+						ExperimentTable et = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.MEMORY);
+						et.setTitle("Memory consumption (" + subsubtitle + ")");
+						et.add(exp);
+						add(et);
+						Scatterplot plot = new Scatterplot(et);
+						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Memory (B)");
+						plot.withPoints(false);
+						plot.setTitle(et.getTitle());
+						add(plot);
+						et_ca.add(exp);
+					}
+					{
+						ExperimentTable et = new ExperimentTable(GateExperiment.INPUT_EVENTS, GateExperiment.TIME_PER_EVENT);
+						et.setTitle("Time per event (" + subsubtitle + ")");
+						et.add(exp);
+						add(et);
+						Scatterplot plot = new Scatterplot(et);
+						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Time per event (ms)");
+						plot.withPoints(false);
+						plot.setTitle(et.getTitle());
+						add(plot);
+						et_ca.add(exp);
+					}
 				}
 
 			}
 		}
-		
+
 		// Comparing the impact of interval length on time for brute-force vs. prefix tree
 		/*{
 			Region r = new Region();
@@ -133,7 +161,7 @@ public class MainLab extends Laboratory
 			}
 		}*/
 	}
-	
+
 	public static void main(String[] args)
 	{
 		MainLab.initialize(args, MainLab.class);

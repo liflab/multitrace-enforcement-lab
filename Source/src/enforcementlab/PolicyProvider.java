@@ -20,6 +20,7 @@ package enforcementlab;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.Property1;
+import enforcementlab.abc.Property2;
 
 public class PolicyProvider
 {
@@ -34,6 +35,8 @@ public class PolicyProvider
 		{
 		case Property1.NAME:
 			return new Property1();
+		case Property2.NAME:
+			return new Property2();
 		}
 		return null;
 	}

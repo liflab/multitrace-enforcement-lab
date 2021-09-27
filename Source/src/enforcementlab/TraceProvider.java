@@ -52,6 +52,11 @@ public class TraceProvider
 	 */
 	protected Picker<Float> m_randomFloat;
 	
+	/**
+	 * The length of the traces to generate
+	 */
+	protected int m_traceLength = 20;
+	
 	public TraceProvider(Picker<Boolean> coin, Picker<Float> random_float)
 	{
 		super();
@@ -81,13 +86,7 @@ public class TraceProvider
 		if (name.compareTo(SE_CASINO_RANDOM) == 0)
 		{
 			CasinoEventPicker picker = new CasinoEventPicker(m_coin, m_randomFloat, "a", "b", "c", "d");
-			PickerSource<CasinoEvent> ps = new PickerSource<CasinoEvent>(picker, 100);
-			return ps;
-		}
-		if (name.compareTo(SE_ABC) == 0)
-		{
-			CasinoEventPicker picker = new CasinoEventPicker(m_coin, m_randomFloat, "a", "b", "c", "d");
-			PickerSource<CasinoEvent> ps = new PickerSource<CasinoEvent>(picker, 100);
+			PickerSource<CasinoEvent> ps = new PickerSource<CasinoEvent>(picker, m_traceLength);
 			return ps;
 		}
 		return null;

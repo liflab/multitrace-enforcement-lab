@@ -90,9 +90,14 @@ public class GateExperiment extends Experiment
 	public static final transient String CORRECTIVE_ACTIONS = "Corrective actions";
 	
 	/**
-	 * The name of parameter "interval".
+	 * The name of parameter "time".
 	 */
 	public static final transient String TIME = "Time";
+	
+	/**
+	 * The name of parameter "time per event".
+	 */
+	public static final transient String TIME_PER_EVENT = "Time per event";
 	
 	/**
 	 * The name of parameter "interval".
@@ -153,6 +158,7 @@ public class GateExperiment extends Experiment
 		describe(DELETED_EVENTS, "The number of events deleted by the pipeline");
 		describe(OUTPUT_EVENTS, "The number of output events produced by the pipeline");
 		describe(TIME, "The time (in milliseconds) taken by the selector to produce the output trace");
+		describe(TIME_PER_EVENT, "The time (in milliseconds) taken by the selector to process each input event");
 		describe(MEMORY, "The memory consumed by the enforcement pipeline");
 		describe(THROUGHPUT, "The average number of events per second ingested by the enforcement pipeline");
 		describe(CORRECTIVE_ACTIONS, "The total number of events that have been added or deleted");
@@ -161,6 +167,7 @@ public class GateExperiment extends Experiment
 		write(INSERTED_EVENTS, new JsonList());
 		write(DELETED_EVENTS, new JsonList());
 		write(MEMORY, new JsonList());
+		write(TIME_PER_EVENT, new JsonList());
 	}
 	
 	/**
@@ -240,9 +247,11 @@ public class GateExperiment extends Experiment
 		JsonList ins_l = (JsonList) read(INSERTED_EVENTS);
 		JsonList del_l = (JsonList) read(DELETED_EVENTS);
 		JsonList mem_l = (JsonList) read(MEMORY);
-		long start = System.currentTimeMillis();
+		JsonList tpe_l = (JsonList) read(TIME_PER_EVENT);
 		SizePrinter sp = new SizePrinter();
 		sp.ignoreAccessChecks(true);
+		long start = System.currentTimeMillis();
+		long lap = start;
 		while (s_p.hasNext())
 		{
 			in_c++;
@@ -272,6 +281,9 @@ public class GateExperiment extends Experiment
 			{
 				throw new ExperimentException(e1);
 			}
+			long now = System.currentTimeMillis();
+			tpe_l.add(now - lap);
+			lap = now;
 			in_l.add(in_c);
 			out_l.add(out_c);
 			ins_l.add(ins_c);

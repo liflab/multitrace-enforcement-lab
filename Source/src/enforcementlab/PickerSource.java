@@ -23,7 +23,8 @@ import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.synthia.Picker;
 
 /**
- * A source of events obtained by an underlying {@link Picker}.
+ * A BeepBeep {@link Source} of events obtained by an underlying Synthia
+ * {@link Picker}.
  * 
  * @param <T> The type of the events produced
  */
