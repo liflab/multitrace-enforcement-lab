@@ -17,12 +17,13 @@
  */
 package enforcementlab.casino;
 
+import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.synthia.Picker;
 
 /**
  * A picker producing (uni-)events from the casino example.
  */
-public class CasinoEventPicker implements Picker<CasinoEvent>
+public class CasinoEventPicker implements Picker<Event>
 {
 	/**
 	 * A coin used to decide the presence of each uni-event in the multi-event.

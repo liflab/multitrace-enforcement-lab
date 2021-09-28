@@ -21,13 +21,11 @@ import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.labpal.Region;
 import ca.uqac.lif.synthia.Picker;
-import ca.uqac.lif.synthia.util.ElementPicker;
-import enforcementlab.casino.CasinoEvent;
-import enforcementlab.casino.CasinoEventPicker;
+import enforcementlab.abc.AbcSource;
+import enforcementlab.casino.CasinoSource;
 
 import static enforcementlab.MultiTraceSelectorExperiment.EVENT_SOURCE;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TraceProvider
@@ -41,6 +39,11 @@ public class TraceProvider
 	 * The "maximize gains" scoring formula in the casino scenario.
 	 */
 	public static final transient String SE_ABC = "a-b-c";
+	
+	/**
+	 * The "maximize gains" scoring formula in the casino scenario.
+	 */
+	public static final transient String SE_FILE = "File operations";
 	
 	/**
 	 * A Boolean picker.
@@ -72,23 +75,13 @@ public class TraceProvider
 	 */
 	public Source get(Region r)
 	{
-		String name = r.getString(EVENT_SOURCE);
-		if (name.compareTo(SE_ABC) == 0)
+		switch (r.getString(EVENT_SOURCE))
 		{
-			
-			ElementPicker<Event> picker = new ElementPicker<Event>(m_randomFloat);
-			picker.add(Event.get("a"), 0.33);
-			picker.add(Event.get("b"), 0.33);
-			picker.add(Event.get("c"), 0.34);
-			PickerSource<Event> ps = new PickerSource<Event>(picker, 100);
-			return ps;
-		}
-		if (name.compareTo(SE_CASINO_RANDOM) == 0)
-		{
-			CasinoEventPicker picker = new CasinoEventPicker(m_coin, m_randomFloat, "a", "b", "c", "d");
-			PickerSource<CasinoEvent> ps = new PickerSource<CasinoEvent>(picker, m_traceLength);
-			return ps;
-		}
+		case SE_ABC:
+			return new AbcSource(m_randomFloat, m_traceLength);
+		case SE_CASINO_RANDOM:
+			return new CasinoSource(m_coin, m_randomFloat, m_traceLength);
+		}		
 		return null;
 	}
 	
@@ -99,28 +92,13 @@ public class TraceProvider
 	 */
 	public List<Event> getAlphabet(Region r)
 	{
-		String name = r.getString(EVENT_SOURCE);
-		List<Event> alphabet = new ArrayList<Event>();
-		switch (name)
+		switch (r.getString(EVENT_SOURCE))
 		{
 		case SE_ABC:
-			alphabet.add(Event.get("a"));
-			alphabet.add(Event.get("b"));
-			alphabet.add(Event.get("c"));
-			break;
+			return AbcSource.getAlphabet();
 		case SE_CASINO_RANDOM:
-			for (String player : new String[] {"a", "b", "c", "d"})
-			{
-				alphabet.add(new CasinoEvent.Bet(player));
-				alphabet.add(new CasinoEvent.StartGame(player));
-				alphabet.add(new CasinoEvent.EndGame(player));
-				for (String player2 : new String[] {"a", "b", "c", "d"})
-				{
-					alphabet.add(new CasinoEvent.Pay(player, player2));					
-				}
-			}
-			break;
+			return CasinoSource.getAlphabet();
 		}
-		return alphabet;
+		return null;
 	}
 }
