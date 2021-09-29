@@ -23,13 +23,14 @@ import java.util.List;
 import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.synthia.Picker;
 import ca.uqac.lif.synthia.sequence.MarkovChain;
+import ca.uqac.lif.synthia.util.Constant;
 import enforcementlab.PickerSource;
 
 public class FileSource extends PickerSource<Event>
 {
-	public FileSource(Picker<Float> float_source, int length)
+	public FileSource(Picker<Float> float_source, float prob_error, int length)
 	{
-		super(new FileEventPicker(float_source, 4), length);
+		super(new FileEventPicker(float_source, prob_error, 4), length);
 	}
 	
 	protected static class FileEventPicker implements Picker<Event>
@@ -43,7 +44,7 @@ public class FileSource extends PickerSource<Event>
 		
 		protected Picker<Float> m_floatSource;
 		
-		public FileEventPicker(Picker<Float> float_source, int num_files)
+		public FileEventPicker(Picker<Float> float_source, float prob_error, int num_files)
 		{
 			super();
 			m_floatSource = float_source;
@@ -51,7 +52,7 @@ public class FileSource extends PickerSource<Event>
 			m_chains = new ArrayList<MarkovChain<Event>>(m_numFiles);
 			for (int i = 0; i < m_numFiles; i++)
 			{
-				m_chains.add(new FileMarkovChain(i, float_source));
+				m_chains.add(new FileMarkovChain(i, float_source, prob_error));
 			}
 		}
 		
@@ -84,9 +85,24 @@ public class FileSource extends PickerSource<Event>
 	
 	protected static class FileMarkovChain extends MarkovChain<Event>
 	{
-		public FileMarkovChain(int file_nb, Picker<Float> float_source)
+		public FileMarkovChain(int file_nb, Picker<Float> float_source, float prob_error)
 		{
 			super(float_source);
+			float prob_ok = 1 - prob_error;
+			add(0, 1, prob_ok);
+			add(1, 2, 0.33);
+			add(1, 3, 0.33);
+			add(1, 0, 0.34);
+			add(2, 3, prob_ok);
+			add(3, 0, prob_ok);
+			add(0, new Constant<Event>(Event.get("Close " + file_nb)));
+			add(1, new Constant<Event>(Event.get("Open" + file_nb)));
+			add(2, new Constant<Event>(Event.get("Write" + file_nb)));
+			add(3, new Constant<Event>(Event.get("Read" + file_nb)));
+			add(0, 2, prob_error / 2);
+			add(0, 3, prob_error / 2);
+			add(3, 1, prob_error / 2);
+			add(3, 2, prob_error / 2);
 		}
 	}
 }

@@ -38,7 +38,15 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 
 	protected Processor m_rho;
 
+	/**
+	 * A variable keeping track of the trace's score.
+	 */
 	protected float m_bestScore;
+	
+	/**
+	 * A counter for the cumulative number of endpoints scored.
+	 */
+	protected int m_endpointsScored;
 
 	/**
 	 * The enforcement pipeline of which this selector is part of, if any.
@@ -53,6 +61,7 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		m_rankingEndpoint = new Endpoint<Event,Number>(m_rho.duplicate());
 		m_elements = new ArrayList<PrefixTreeElement>();
 		m_bestScore = 0;
+		m_endpointsScored = 0;
 	}
 
 	@Override
@@ -121,6 +130,7 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 			Number n = ep.getLastValue();
 			if (n != null)
 			{
+				m_endpointsScored++;
 				float score = n.floatValue();
 				if (!found || score > best_score)
 				{
@@ -159,6 +169,19 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 	{
 		super.reset();
 		m_bestScore = 0;
+		m_endpointsScored = 0;
+		m_elements.clear();
+		m_rankingEndpoint.reset();
+		m_rankingCheckpoint.reset();
+	}
+	
+	/**
+	 * Gets the cumulative number of endpoints scored.
+	 * @return The number of endpoints scored
+	 */
+	public int getEndpointsScored()
+	{
+		return m_endpointsScored;
 	}
 
 	@Override

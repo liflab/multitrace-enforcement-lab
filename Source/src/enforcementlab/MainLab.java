@@ -21,6 +21,7 @@ import static enforcementlab.TraceProvider.SE_ABC;
 import static enforcementlab.TraceProvider.SE_CASINO_RANDOM;
 import static enforcementlab.GateExperiment.CORRECTIVE_ACTIONS;
 import static enforcementlab.GateExperiment.DELETED_EVENTS;
+import static enforcementlab.GateExperiment.ENDPOINTS_SCORED;
 import static enforcementlab.GateExperiment.ENFORCEMENT_SWITCHES;
 import static enforcementlab.GateExperiment.EVENT_SOURCE;
 import static enforcementlab.GateExperiment.INPUT_EVENTS;
@@ -33,6 +34,7 @@ import static enforcementlab.GateExperiment.PROXY;
 import static enforcementlab.GateExperiment.SCORING_FORMULA;
 import static enforcementlab.GateExperiment.TIME;
 import static enforcementlab.GateExperiment.TIME_PER_EVENT;
+import static enforcementlab.GateExperiment.TRACE_SCORE;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_BETS;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_GAINS;
 import static enforcementlab.ScoringProcessorProvider.SC_MINIMIZE_CHANGES;
@@ -113,6 +115,28 @@ public class MainLab extends Laboratory
 						add(et);
 						Scatterplot plot = new Scatterplot(et);
 						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Output events");
+						plot.withPoints(false);
+						plot.setTitle(et.getTitle());
+						add(plot);
+					}
+					{
+						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, TRACE_SCORE);
+						et.setTitle("Evolution of trace score (" + subsubtitle + ")");
+						et.add(exp);
+						add(et);
+						Scatterplot plot = new Scatterplot(et);
+						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Score");
+						plot.withPoints(false);
+						plot.setTitle(et.getTitle());
+						add(plot);
+					}
+					{
+						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, ENDPOINTS_SCORED);
+						et.setTitle("Number of endpoints scored (" + subsubtitle + ")");
+						et.add(exp);
+						add(et);
+						Scatterplot plot = new Scatterplot(et);
+						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Endpoints scored");
 						plot.withPoints(false);
 						plot.setTitle(et.getTitle());
 						add(plot);

@@ -120,6 +120,16 @@ public class GateExperiment extends Experiment
 	public static final transient String ENFORCEMENT_SWITCHES = "Enforcement switches";
 	
 	/**
+	 * The name of parameter "endpoints scored".
+	 */
+	public static final transient String ENDPOINTS_SCORED = "Endpoints scored";
+	
+	/**
+	 * The name of parameter "trace score".
+	 */
+	public static final transient String TRACE_SCORE = "Trace score";
+	
+	/**
 	 * The source of events.
 	 */
 	protected transient Source m_source;
@@ -158,6 +168,8 @@ public class GateExperiment extends Experiment
 		describe(DELETED_EVENTS, "The number of events deleted by the pipeline");
 		describe(OUTPUT_EVENTS, "The number of output events produced by the pipeline");
 		describe(TIME, "The time (in milliseconds) taken by the selector to produce the output trace");
+		describe(ENDPOINTS_SCORED, "The cumulative number of trace segments that have been ranked");
+		describe(TRACE_SCORE, "The score given to the current trace");
 		describe(TIME_PER_EVENT, "The time (in milliseconds) taken by the selector to process each input event");
 		describe(MEMORY, "The memory consumed by the enforcement pipeline");
 		describe(THROUGHPUT, "The average number of events per second ingested by the enforcement pipeline");
@@ -168,6 +180,8 @@ public class GateExperiment extends Experiment
 		write(DELETED_EVENTS, new JsonList());
 		write(MEMORY, new JsonList());
 		write(TIME_PER_EVENT, new JsonList());
+		write(TRACE_SCORE, new JsonList());
+		write(ENDPOINTS_SCORED, new JsonList());
 	}
 	
 	/**
@@ -248,6 +262,8 @@ public class GateExperiment extends Experiment
 		JsonList del_l = (JsonList) read(DELETED_EVENTS);
 		JsonList mem_l = (JsonList) read(MEMORY);
 		JsonList tpe_l = (JsonList) read(TIME_PER_EVENT);
+		JsonList eps_l = (JsonList) read(ENDPOINTS_SCORED);
+		JsonList sco_l = (JsonList) read(TRACE_SCORE);
 		SizePrinter sp = new SizePrinter();
 		sp.ignoreAccessChecks(true);
 		long start = System.currentTimeMillis();
@@ -289,6 +305,8 @@ public class GateExperiment extends Experiment
 			ins_l.add(ins_c);
 			del_l.add(del_c);
 			mem_l.add(mem);
+			eps_l.add(m_selector.getEndpointsScored());
+			sco_l.add(m_selector.getScore());
 		}
 		long end = System.currentTimeMillis();
 		write(TIME, end - start);
