@@ -17,6 +17,8 @@
  */
 package ca.uqac.lif.cep.enforcement;
 
+import java.util.Collection;
+
 import ca.uqac.lif.cep.functions.UnaryFunction;
 
 public class Quadrilean
@@ -55,6 +57,74 @@ public class Quadrilean
 		{
 			return this;
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static class BagAnd extends UnaryFunction<Collection,Quadrilean.Value>
+	{
+		public static final transient BagAnd instance = new BagAnd();
 		
+		protected BagAnd()
+		{
+			super(Collection.class, Quadrilean.Value.class);
+		}
+
+		@Override
+		public Value getValue(Collection col)
+		{
+			Value v = Value.TRUE;
+			for (Object o : col)
+			{
+				v = and(v, o);
+				if (v == Value.FALSE)
+				{
+					return v;
+				}
+			}
+			return v;
+		}
+	}
+	
+	public static Value toQuadrilean(Object x)
+	{
+		if (x instanceof Quadrilean.Value)
+		{
+			return (Quadrilean.Value) x;
+		}
+		if (x instanceof Boolean)
+		{
+			Boolean b = (Boolean) x;
+			if (b)
+			{
+				return Quadrilean.Value.TRUE;
+			}
+			return Quadrilean.Value.FALSE;
+		}
+		return Quadrilean.Value.FALSE;
+	}
+	
+	public static Value and(Object o1, Object o2)
+	{
+		Value v1 = toQuadrilean(o1);
+		Value v2 = toQuadrilean(o2);
+		switch (v1)
+		{
+		case TRUE:
+			return v2;
+		case P_TRUE:
+			if (v2 == Value.TRUE)
+			{
+				return v1;
+			}
+			return v2;
+		case P_FALSE:
+			if (v1 == Value.FALSE)
+			{
+				return v1;
+			}
+			return Value.P_FALSE;
+		default:
+			return Value.FALSE;
+		}
 	}
 }
