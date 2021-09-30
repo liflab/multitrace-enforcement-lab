@@ -179,6 +179,12 @@ public class Event
 		{
 			super(label);
 		}
+		
+		@Override
+		public String toString()
+		{
+			return "+" + super.toString();
+		}
 	}
 	
 	/**
@@ -189,6 +195,12 @@ public class Event
 		protected DeletedEvent(String label)
 		{
 			super(label);
+		}
+		
+		@Override
+		public String toString()
+		{
+			return "-" + super.toString();
 		}
 	}
 

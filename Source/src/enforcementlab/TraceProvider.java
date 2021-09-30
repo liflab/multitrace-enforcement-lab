@@ -23,28 +23,14 @@ import ca.uqac.lif.labpal.Region;
 import ca.uqac.lif.synthia.Picker;
 import enforcementlab.abc.AbcSource;
 import enforcementlab.casino.CasinoSource;
+import enforcementlab.file.FileSource;
 
 import static enforcementlab.MultiTraceSelectorExperiment.EVENT_SOURCE;
 
 import java.util.List;
 
 public class TraceProvider
-{
-	/**
-	 * The "maximize gains" scoring formula in the casino scenario.
-	 */
-	public static final transient String SE_CASINO_RANDOM = "Casino random";
-	
-	/**
-	 * The "maximize gains" scoring formula in the casino scenario.
-	 */
-	public static final transient String SE_ABC = "a-b-c";
-	
-	/**
-	 * The "maximize gains" scoring formula in the casino scenario.
-	 */
-	public static final transient String SE_FILE = "File operations";
-	
+{	
 	/**
 	 * A Boolean picker.
 	 */
@@ -58,7 +44,7 @@ public class TraceProvider
 	/**
 	 * The length of the traces to generate
 	 */
-	protected int m_traceLength = 20;
+	protected int m_traceLength = 100;
 	
 	public TraceProvider(Picker<Boolean> coin, Picker<Float> random_float)
 	{
@@ -77,11 +63,13 @@ public class TraceProvider
 	{
 		switch (r.getString(EVENT_SOURCE))
 		{
-		case SE_ABC:
+		case AbcSource.NAME:
 			return new AbcSource(m_randomFloat, m_traceLength);
-		case SE_CASINO_RANDOM:
+		case CasinoSource.NAME:
 			return new CasinoSource(m_coin, m_randomFloat, m_traceLength);
-		}		
+		case FileSource.NAME:
+			return new FileSource(m_randomFloat, 0.1f, m_traceLength);
+		}
 		return null;
 	}
 	
@@ -94,10 +82,12 @@ public class TraceProvider
 	{
 		switch (r.getString(EVENT_SOURCE))
 		{
-		case SE_ABC:
+		case AbcSource.NAME:
 			return AbcSource.getAlphabet();
-		case SE_CASINO_RANDOM:
+		case CasinoSource.NAME:
 			return CasinoSource.getAlphabet();
+		case FileSource.NAME:
+			return FileSource.getAlphabet();
 		}
 		return null;
 	}

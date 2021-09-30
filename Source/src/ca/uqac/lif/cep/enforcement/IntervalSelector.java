@@ -32,6 +32,7 @@ public class IntervalSelector extends Selector
 	@Override
 	protected boolean decide()
 	{
+		System.out.println(m_elements.size());
 		return m_elements.size() >= m_interval;
 	}
 }

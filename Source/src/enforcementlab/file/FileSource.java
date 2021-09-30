@@ -26,13 +26,43 @@ import ca.uqac.lif.synthia.sequence.MarkovChain;
 import ca.uqac.lif.synthia.util.Constant;
 import enforcementlab.PickerSource;
 
+/**
+ * A source of events from the file manipulation scenario.
+ */
 public class FileSource extends PickerSource<Event>
 {
+	/**
+	 * The name of this event source.
+	 */
+	public static final transient String NAME = "Files";
+	
+	/**
+	 * The maximum number of files that are manipulated in the simulated
+	 * trace.
+	 */
+	protected static final transient int s_numFiles = 4;
+	
 	public FileSource(Picker<Float> float_source, float prob_error, int length)
 	{
-		super(new FileEventPicker(float_source, prob_error, 4), length);
+		super(new FileEventPicker(float_source, prob_error, s_numFiles), length);
 	}
 	
+	public static List<Event> getAlphabet()
+	{
+		List<Event> alphabet = new ArrayList<Event>();
+		for (int i = 0; i < s_numFiles; i++)
+		{
+			alphabet.add(Event.get("Open " + i));
+			alphabet.add(Event.get("Close " + i));
+			alphabet.add(Event.get("Read " + i));
+			alphabet.add(Event.get("Write " + i));
+		}
+		return alphabet;
+	}
+	
+	/**
+	 * A picker of file events.
+	 */
 	protected static class FileEventPicker implements Picker<Event>
 	{
 		/**
@@ -44,12 +74,15 @@ public class FileSource extends PickerSource<Event>
 		
 		protected Picker<Float> m_floatSource;
 		
+		protected float m_probError;
+		
 		public FileEventPicker(Picker<Float> float_source, float prob_error, int num_files)
 		{
 			super();
 			m_floatSource = float_source;
 			m_numFiles = num_files;
 			m_chains = new ArrayList<MarkovChain<Event>>(m_numFiles);
+			m_probError = prob_error;
 			for (int i = 0; i < m_numFiles; i++)
 			{
 				m_chains.add(new FileMarkovChain(i, float_source, prob_error));
@@ -57,10 +90,17 @@ public class FileSource extends PickerSource<Event>
 		}
 		
 		@Override
-		public Picker<Event> duplicate(boolean with_state)
+		public FileEventPicker duplicate(boolean with_state)
 		{
-			// TODO Auto-generated method stub
-			return null;
+			FileEventPicker fep = new FileEventPicker(m_floatSource.duplicate(with_state), m_probError, m_numFiles);
+			if (with_state)
+			{
+				for (MarkovChain<Event> chain : m_chains)
+				{
+					fep.m_chains.add(chain.duplicate(with_state));
+				}
+			}
+			return fep;
 		}
 
 		@Override
@@ -96,9 +136,9 @@ public class FileSource extends PickerSource<Event>
 			add(2, 3, prob_ok);
 			add(3, 0, prob_ok);
 			add(0, new Constant<Event>(Event.get("Close " + file_nb)));
-			add(1, new Constant<Event>(Event.get("Open" + file_nb)));
-			add(2, new Constant<Event>(Event.get("Write" + file_nb)));
-			add(3, new Constant<Event>(Event.get("Read" + file_nb)));
+			add(1, new Constant<Event>(Event.get("Open " + file_nb)));
+			add(2, new Constant<Event>(Event.get("Write " + file_nb)));
+			add(3, new Constant<Event>(Event.get("Read " + file_nb)));
 			add(0, 2, prob_error / 2);
 			add(0, 3, prob_error / 2);
 			add(3, 1, prob_error / 2);

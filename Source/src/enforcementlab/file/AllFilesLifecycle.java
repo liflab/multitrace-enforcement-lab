@@ -27,6 +27,8 @@ import ca.uqac.lif.cep.util.Maps;
 
 public class AllFilesLifecycle extends GroupProcessor
 {
+	public static final transient String NAME = "All files lifecycle";
+	
 	public AllFilesLifecycle()
 	{
 		super(1, 1);

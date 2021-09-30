@@ -17,8 +17,6 @@
  */
 package enforcementlab;
 
-import static enforcementlab.TraceProvider.SE_ABC;
-import static enforcementlab.TraceProvider.SE_CASINO_RANDOM;
 import static enforcementlab.GateExperiment.CORRECTIVE_ACTIONS;
 import static enforcementlab.GateExperiment.DELETED_EVENTS;
 import static enforcementlab.GateExperiment.ENDPOINTS_SCORED;
@@ -39,12 +37,15 @@ import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_BETS;
 import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_GAINS;
 import static enforcementlab.ScoringProcessorProvider.SC_MINIMIZE_CHANGES;
 
+import java.util.List;
+
 import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
 import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.labpal.Group;
 import ca.uqac.lif.labpal.Laboratory;
 import ca.uqac.lif.labpal.LatexNamer;
 import ca.uqac.lif.labpal.Region;
+import ca.uqac.lif.labpal.server.WebCallback;
 import ca.uqac.lif.labpal.table.ExperimentTable;
 import ca.uqac.lif.mtnp.plot.TwoDimensionalPlot.Axis;
 import ca.uqac.lif.mtnp.plot.gnuplot.Scatterplot;
@@ -52,10 +53,14 @@ import ca.uqac.lif.mtnp.table.ExpandAsColumns;
 import ca.uqac.lif.mtnp.table.TransformedTable;
 import ca.uqac.lif.synthia.random.RandomBoolean;
 import ca.uqac.lif.synthia.random.RandomFloat;
+import enforcementlab.GateExperimentFactory.ScenarioRegion;
+import enforcementlab.abc.AbcSource;
 import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
+import enforcementlab.file.AllFilesLifecycle;
+import enforcementlab.file.FileSource;
 
 @SuppressWarnings("unused")
 public class MainLab extends Laboratory
@@ -85,9 +90,9 @@ public class MainLab extends Laboratory
 			Group g = new Group("General behavior");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
-			Region big_r = new Region();
-			big_r.add(EVENT_SOURCE, SE_ABC);
-			big_r.add(POLICY, Property1.NAME, Property2.NAME);
+			ScenarioRegion big_r = new ScenarioRegion();
+			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME);
+			big_r.add(POLICY, Property1.NAME, Property2.NAME, AllFilesLifecycle.NAME);
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME);
 			big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
 			big_r.add(INTERVAL, 2, 4, 8);
@@ -170,13 +175,13 @@ public class MainLab extends Laboratory
 		}
 
 		// Impact of proxy precision
-		{
+		/*{
 			Group g = new Group("Impact of proxy precision");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
 			setupComparisonProxy(factory, g, Property1.NAME, DeleteAny.NAME, DeleteAnyA.NAME);
 			setupComparisonProxy(factory, g, Property1.NAME, InsertAny.NAME, InsertAnyA.NAME);
-		}
+		}*/
 
 		// Comparing the impact of interval length on time for brute-force vs. prefix tree
 		/*{
@@ -219,7 +224,7 @@ public class MainLab extends Laboratory
 	protected void setupComparisonProxy(GateExperimentFactory factory, Group g, String policy, String proxy1, String proxy2)
 	{
 		Region big_r = new Region();
-		big_r.add(EVENT_SOURCE, SE_ABC);
+		big_r.add(EVENT_SOURCE, AbcSource.NAME);
 		big_r.add(POLICY, policy);
 		big_r.add(PROXY, proxy1, proxy2);
 		big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
@@ -260,6 +265,12 @@ public class MainLab extends Laboratory
 				et_memory.add(exp);
 			}
 		}
+	}
+	
+	@Override
+	public void setupCallbacks(List<WebCallback> callbacks)
+	{
+		callbacks.add(new PipelineStepCallback(this));
 	}
 
 	public static void main(String[] args)

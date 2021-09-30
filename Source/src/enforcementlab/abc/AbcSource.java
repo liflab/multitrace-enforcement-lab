@@ -31,6 +31,11 @@ import enforcementlab.PickerSource;
  */
 public class AbcSource extends PickerSource<Event>
 {
+	/**
+	 * The name of this event source.
+	 */
+	public static final transient String NAME = "a-b-c";
+	
 	public AbcSource(Picker<Float> float_source, int length)
 	{
 		super(getPicker(float_source), length);

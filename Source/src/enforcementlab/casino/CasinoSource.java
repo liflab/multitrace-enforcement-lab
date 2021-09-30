@@ -29,6 +29,11 @@ import enforcementlab.PickerSource;
  */
 public class CasinoSource extends PickerSource<Event>
 {
+	/**
+	 * The name of this event source.
+	 */
+	public static final transient String NAME = "Casino";
+	
 	protected static final String[] s_players = new String[] {"a", "b", "c", "d"};
 	
 	public CasinoSource(Picker<Boolean> coin, Picker<Float> float_source, int length)

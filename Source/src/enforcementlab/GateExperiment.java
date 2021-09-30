@@ -17,6 +17,8 @@
  */
 package enforcementlab;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 import ca.uqac.lif.azrael.PrintException;
@@ -155,6 +157,11 @@ public class GateExperiment extends Experiment
 	protected transient Selector m_selector;
 	
 	/**
+	 * The list of pipeline steps as recorded by the experiment.
+	 */
+	protected transient List<PipelineStep> m_pipelineSteps;
+	
+	/**
 	 * Creates a new empty enforcement pipeline experiment.
 	 */
 	public GateExperiment()
@@ -182,6 +189,7 @@ public class GateExperiment extends Experiment
 		write(TIME_PER_EVENT, new JsonList());
 		write(TRACE_SCORE, new JsonList());
 		write(ENDPOINTS_SCORED, new JsonList());
+		m_pipelineSteps = new ArrayList<PipelineStep>();
 	}
 	
 	/**
@@ -275,9 +283,11 @@ public class GateExperiment extends Experiment
 			g_p.push(e);
 			out_c += queue.size();
 			int mem = 0;
+			List<Event> e_output = new ArrayList<Event>();
 			while (!queue.isEmpty())
 			{
 				Event q_e = (Event) queue.remove();
+				e_output.add(q_e);
 				if (q_e instanceof Added)
 				{
 					ins_c++;
@@ -288,6 +298,7 @@ public class GateExperiment extends Experiment
 					out_c--;
 				}
 			}
+			m_pipelineSteps.add(new PipelineStep(e, e_output));
 			sp.reset();
 			try
 			{
@@ -313,5 +324,32 @@ public class GateExperiment extends Experiment
 		write(THROUGHPUT,  in_c * 100 / (end - start));
 		write(CORRECTIVE_ACTIONS, ins_c + del_c);
 		write(ENFORCEMENT_SWITCHES, g.getEnforcementSwitches());
+	}
+	
+	/**
+	 * Called by the factory to notify the experiment that an ID has been
+	 * assigned to it. This method circumvents the fact that an experiment does
+	 * not yet know its ID when its constructor is called.
+	 * @param id The experiment's id
+	 */
+	public void tellId(int id)
+	{
+		writeDescription();
+	}
+	
+	/**
+	 * Writes the description of the experiment.
+	 */
+	protected void writeDescription()
+	{
+		StringBuilder out = new StringBuilder();
+		out.append("<p>Runs an enforcement pipeline on a trace of events.</p>\n");
+		out.append("<p><a href=\"/trace/").append(getId()).append("\">See the pipeline steps</a></p>\n");
+		setDescription(out.toString());
+	}
+	
+	public List<PipelineStep> getPipelineSteps()
+	{
+		return m_pipelineSteps;
 	}
 }

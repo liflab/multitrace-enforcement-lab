@@ -58,8 +58,9 @@ public class AllFilesLifecycleTest
 		QueueSink sink2 = new QueueSink();
 		Connector.connect(fl2, sink2);
 		Queue<Object> queue2 = sink2.getQueue();
-		Pushable p2 = fl.getPushableInput();
+		Pushable p2 = fl2.getPushableInput();
 		p2.push(Event.get("Read 1"));
+		assertFalse(queue2.isEmpty());
 		v = (Quadrilean.Value) queue2.remove();
 		assertEquals(Value.FALSE, v);
 	}

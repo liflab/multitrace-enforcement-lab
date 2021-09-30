@@ -23,14 +23,24 @@ import static enforcementlab.GateExperiment.POLICY;
 import static enforcementlab.GateExperiment.PROXY;
 import static enforcementlab.GateExperiment.SCORING_FORMULA;
 
+
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.enforcement.IntervalFilter;
 import ca.uqac.lif.cep.enforcement.IntervalSelector;
 import ca.uqac.lif.cep.enforcement.Proxy;
 import ca.uqac.lif.cep.enforcement.Selector;
+import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
+import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.labpal.ExperimentFactory;
 import ca.uqac.lif.labpal.Region;
+import enforcementlab.abc.AbcSource;
+import enforcementlab.abc.DeleteAnyA;
+import enforcementlab.abc.InsertAnyA;
+import enforcementlab.abc.Property1;
+import enforcementlab.abc.Property2;
+import enforcementlab.file.AllFilesLifecycle;
+import enforcementlab.file.FileSource;
 
 /**
  * Produces gate experiments based on the contents of a region.
@@ -41,22 +51,22 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 	 * A provider producing event sources from a region.
 	 */
 	protected TraceProvider m_traceProvider;
-	
+
 	/**
 	 * A provider producing monitors from a region.
 	 */
 	protected PolicyProvider m_policyProvider;
-	
+
 	/**
 	 * A provider producing proxies from a region.
 	 */
 	protected ProxyProvider m_proxyProvider;
-	
+
 	/**
 	 * A provider producing scoring processors from a region.
 	 */
 	protected ScoringProcessorProvider m_scoreProvider;
-	
+
 	/**
 	 * Creates a new instance of the factory.
 	 * @param lab The lab where the experiments are to be added
@@ -72,6 +82,17 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 		m_scoreProvider = scores;
 		m_policyProvider = monitors;
 		m_proxyProvider = proxies;
+	}
+	
+	@Override
+	public GateExperiment get(Region r)
+	{
+		GateExperiment ge = super.get(r);
+		if (ge != null)
+		{
+			ge.tellId(ge.getId());
+		}
+		return ge;
 	}
 
 	@Override
@@ -99,5 +120,85 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 		ge.setFilter(new IntervalFilter(mon, interval));
 		ge.setSelector(mts, r.getString(SCORING_FORMULA));
 		return ge;
+	}
+
+	/**
+	 * A region that includes only combinations of source/policy/proxy/scoring
+	 * that correspond to a valid scenario.
+	 */
+	public static class ScenarioRegion extends Region
+	{
+		public ScenarioRegion()
+		{
+			super();
+		}
+		
+		public ScenarioRegion(Region r)
+		{
+			super(r);
+		}
+		
+		@Override
+		public boolean isInRegion(Region point)
+		{
+			if (!isFixed(point, EVENT_SOURCE))
+			{
+				return true;
+			}
+			String source = point.getString(EVENT_SOURCE);
+			switch (source)
+			{
+			case AbcSource.NAME:
+				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), Property1.NAME, Property2.NAME))
+					return false;
+				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), InsertAny.NAME, DeleteAny.NAME, InsertAnyA.NAME, DeleteAnyA.NAME))
+					return false;
+				break;
+			case FileSource.NAME:
+				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), AllFilesLifecycle.NAME))
+				{
+					return false;
+				}
+				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), DeleteAny.NAME))
+				{
+					return false;
+				}
+				break;
+			}
+			return true;
+		}
+		
+		@Override
+		protected ScenarioRegion getEmptyRegion()
+		{
+			return new ScenarioRegion();
+		}
+
+		@Override
+		protected ScenarioRegion getRegion(Region r)
+		{
+			return new ScenarioRegion(r);
+		}
+		
+		protected static boolean isFixed(Region r, String dimension)
+		{
+			if (!r.hasDimension(dimension))
+			{
+				return false;
+			}
+			return r.getAll(dimension).size() == 1;
+		}
+		
+		protected static boolean oneOf(String s, String ... options)
+		{
+			for (String op : options)
+			{
+				if (s.compareTo(op) == 0)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }

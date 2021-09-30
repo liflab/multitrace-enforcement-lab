@@ -25,6 +25,7 @@ import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.SynchronousProcessor;
+import ca.uqac.lif.cep.enforcement.Event.Deleted;
 import ca.uqac.lif.cep.tmf.BlackHole;
 import ca.uqac.lif.cep.tmf.QueueSink;
 
@@ -124,7 +125,7 @@ public class Gate extends SynchronousProcessor
 			m_filter.apply(m_prefix);
 			m_selector.apply(m_prefix);
 			m_prefix.clear();
-			m_muCheckpoint = m_mu.duplicate(true);
+			m_muCheckpoint = m_monitorEndpoint.m_processor.duplicate(true);
 			Connector.connect(m_muCheckpoint, m_hole);
 			return true;
 		}
@@ -144,7 +145,10 @@ public class Gate extends SynchronousProcessor
 			for (Event out_event : to_output)
 			{
 				outputs.add(new Object[] {out_event});
-				p.push(out_event);
+				if (out_event != null && !out_event.getLabel().isEmpty() && !(out_event instanceof Deleted))
+				{
+					p.push(out_event);
+				}
 			}
 			m_proxy.apply(to_output);
 			m_filter.apply(to_output);
