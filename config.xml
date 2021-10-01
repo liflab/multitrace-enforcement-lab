@@ -37,7 +37,7 @@
   
   <!-- Output jar -->
   <jar>
-    <filename>boolean-coverage-lab.jar</filename>
+    <filename>multitrace-enforcement-lab.jar</filename>
     <withdeps>true</withdeps>
     <withdoc>true</withdoc>
     <withsrc>true</withsrc>
@@ -73,7 +73,7 @@
       <classname>ca.uqac.lif.cep.Processor</classname>
       <bundle>true</bundle>
       <files>
-        <zip>https://github.com/liflab/beepbeep-3/releases/download/v0.10.5-alpha/beepbeep-3-0.10.5-alpha.zip</zip>
+        <zip>https://github.com/liflab/beepbeep-3/releases/download/v0.10.6-alpha/beepbeep-3-0.10.6-alpha.zip</zip>
       </files>
     </dependency>
     <dependency>
