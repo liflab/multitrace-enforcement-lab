@@ -33,7 +33,12 @@ public class Event
 	/**
 	 * The "diamond" event.
 	 */
-	public static final transient Event DIAMOND = new Event("♦");
+	public static final transient Event DIAMOND = new Event("◆");
+	
+	/**
+	 * The "possibly diamond" event.
+	 */
+	public static final transient Event P_DIAMOND = new Event("◇");
 	
 	/**
 	 * The label of the event.

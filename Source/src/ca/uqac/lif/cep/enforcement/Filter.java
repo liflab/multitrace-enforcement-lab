@@ -81,6 +81,7 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 			Endpoint<Event,Value> ep = new Endpoint<Event,Value>(m_current.duplicate(true));
 			endpoints.add(ep);
 		}
+		boolean one_good = false;
 		for (int j = 0; j < m_elements.size(); j++)
 		{
 			if (!decide())
@@ -109,10 +110,19 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 					}
 					else
 					{
-						if (j == m_elements.size() - 1 && verdict == Value.P_FALSE)
+						if (j == m_elements.size() - 1)
 						{
-							// Last event; if it evaluates to "possibly false", don't consider it
-							events_to_add.add(Event.DIAMOND);
+							// Last event of a possible trace
+							if (verdict == Value.P_FALSE)
+							{
+								// If it evaluates to "possibly false", don't consider it
+								events_to_add.add(Event.DIAMOND);
+							}
+							else
+							{
+								events_to_add.add(e);
+								one_good = true;
+							}
 						}
 						else
 						{
@@ -126,16 +136,18 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 			endpoints = new_endpoints;
 			out_list.add(out_element);
 		}
-		//m_elements.clear();
-		outputs.add(new Object[] {out_list});
+		if (one_good)
+		{
+			outputs.add(new Object[] {out_list});
+		}
 		return true;
 	}
-	
+
 	public List<PrefixTreeElement> getElements()
 	{
 		return m_elements;
 	}
-	
+
 	public int getSize()
 	{
 		int size = 0;

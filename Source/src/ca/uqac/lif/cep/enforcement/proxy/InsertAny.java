@@ -86,6 +86,7 @@ public class InsertAny extends UniformProcessor
 		}
 		mte.add(me);
 		mte.add(new MultiEvent(in_e));
+		//mte.add(me);
 		outputs[0] = mte;
 		return true;
 	}
