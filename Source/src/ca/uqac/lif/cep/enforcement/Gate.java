@@ -18,8 +18,10 @@
 package ca.uqac.lif.cep.enforcement;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
@@ -85,6 +87,12 @@ public class Gate extends SynchronousProcessor
 	protected List<Event> m_prefix;
 	
 	/**
+	 * A set of objects implementing the {@link Checkpointable} interface, and
+	 * which will be notified whenever the gate produces output events.
+	 */
+	protected Set<Checkpointable> m_toNotify;
+	
+	/**
 	 * The number of times the gate has switched to the enforcement pipeline.
 	 */
 	protected int m_enforcementSwitches = 0;
@@ -97,6 +105,7 @@ public class Gate extends SynchronousProcessor
 		m_proxy = p;
 		m_filter = f;
 		m_selector = s;
+		m_toNotify = new HashSet<Checkpointable>();
 		m_sink = new QueueSink();
 		m_pushable = m_proxy.getPushableInput();
 		Connector.connect(m_proxy, m_filter);
@@ -106,6 +115,16 @@ public class Gate extends SynchronousProcessor
 		m_muCheckpoint = m_mu.duplicate(true);
 		m_hole = new BlackHole();
 		Connector.connect(m_muCheckpoint, m_hole);
+	}
+	
+	/**
+	 * Instructs the gate that an external object must be notified of every event
+	 * it outputs.
+	 * @param c The object to notify
+	 */
+	public void notify(Checkpointable c)
+	{
+		m_toNotify.add(c);
 	}
 
 	@Override
@@ -124,6 +143,10 @@ public class Gate extends SynchronousProcessor
 			m_proxy.apply(m_prefix);
 			m_filter.apply(m_prefix);
 			m_selector.apply(m_prefix);
+			for (Checkpointable c : m_toNotify)
+			{
+				c.apply(m_prefix);
+			}
 			m_prefix.clear();
 			m_muCheckpoint = m_monitorEndpoint.m_processor.duplicate(true);
 			Connector.connect(m_muCheckpoint, m_hole);
@@ -153,6 +176,10 @@ public class Gate extends SynchronousProcessor
 			m_proxy.apply(to_output);
 			m_filter.apply(to_output);
 			m_selector.apply(to_output);
+			for (Checkpointable c : m_toNotify)
+			{
+				c.apply(to_output);
+			}
 			m_monitorEndpoint =  new Endpoint<Event,Quadrilean.Value>(m_muCheckpoint.duplicate(true));
 			m_prefix.clear();
 		}

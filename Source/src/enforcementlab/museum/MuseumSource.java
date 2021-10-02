@@ -20,7 +20,9 @@ package enforcementlab.museum;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.uqac.lif.cep.enforcement.Checkpointable;
 import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.Event.Deleted;
 import ca.uqac.lif.synthia.Picker;
 import enforcementlab.PickerSource;
 
@@ -100,7 +102,7 @@ public class MuseumSource extends PickerSource<Event>
 		((MuseumEventPicker) m_picker).includeInvalid(b);
 	}
 
-	protected static class MuseumEventPicker implements Picker<Event>
+	protected static class MuseumEventPicker implements Picker<Event>, Checkpointable
 	{
 		protected Picker<Float> m_floatSource;
 
@@ -110,19 +112,19 @@ public class MuseumSource extends PickerSource<Event>
 		 * The number of adults inside the museum in the trace prefix generated
 		 * so far.
 		 */
-		protected int m_numAdults;
+		protected int[] m_numAdults;
 
 		/**
 		 * The number of children inside the museum in the trace prefix generated
 		 * so far.
 		 */
-		protected int m_numChildren;
+		protected int[] m_numChildren;
 
 		/**
 		 * The number of guards inside the museum in the trace prefix generated
 		 * so far.
 		 */
-		protected int m_numGuards;
+		protected int[] m_numGuards;
 
 		/**
 		 * A flag indicating whether the picker may produce erroneous events
@@ -140,9 +142,9 @@ public class MuseumSource extends PickerSource<Event>
 			super();
 			m_floatSource = float_source;
 			m_coin = coin;
-			m_numAdults = 0;
-			m_numChildren = 0;
-			m_numGuards = 0;
+			m_numAdults = new int[] {0, 0};
+			m_numChildren = new int[] {0, 0};
+			m_numGuards = new int[] {0, 0};
 		}
 
 		/**
@@ -162,9 +164,12 @@ public class MuseumSource extends PickerSource<Event>
 			MuseumEventPicker mep = new MuseumEventPicker(m_floatSource.duplicate(with_state), m_coin.duplicate(with_state));
 			if (with_state)
 			{
-				mep.m_numAdults = m_numAdults;
-				mep.m_numChildren = m_numChildren;
-				mep.m_numGuards = m_numGuards;
+				mep.m_numAdults[0] = m_numAdults[0];
+				mep.m_numAdults[1] = m_numAdults[1];
+				mep.m_numChildren[0] = m_numChildren[0];
+				mep.m_numChildren[1] = m_numChildren[1];
+				mep.m_numGuards[0] = m_numGuards[0];
+				mep.m_numGuards[1] = m_numGuards[1];
 			}
 			return mep;
 		}
@@ -180,24 +185,24 @@ public class MuseumSource extends PickerSource<Event>
 			available.add(CHILD_IN);
 			available.add(CHILD_IN);
 			available.add(GUARD_IN);
-			if (m_numAdults > 0 || (m_withErrors && m_coin.pick()))
+			if (m_numAdults[0] > 0 || (m_withErrors && m_coin.pick()))
 			{
 				available.add(ADULT_OUT);
 				available.add(ADULT_OUT);
 			}
-			if (m_numChildren > 0 || (m_withErrors && m_coin.pick()))
+			if (m_numChildren[0] > 0 || (m_withErrors && m_coin.pick()))
 			{
 				available.add(CHILD_OUT);
 				available.add(CHILD_OUT);
 			}
-			if (m_numGuards > 0 || (m_withErrors && m_coin.pick()))
+			if (m_numGuards[0] > 0 || (m_withErrors && m_coin.pick()))
 			{
 				available.add(GUARD_OUT);
 				available.add(GUARD_OUT);
 			}
 			int index = (int) (m_floatSource.pick() * (float) available.size());
 			Event picked = available.get(index);
-			updateCounts(picked);
+			updateCounts(picked, 0);
 			return picked;
 		}
 
@@ -206,31 +211,39 @@ public class MuseumSource extends PickerSource<Event>
 		 * output event. 
 		 * @param e The event
 		 */
-		protected void updateCounts(Event e)
+		protected void updateCounts(Event e, int index)
 		{
+			if (index == 1)
+			{
+				System.out.print( e + " A:" + m_numAdults[1] + ",C:" + m_numChildren[1] + ",G:" + m_numGuards[1]);
+			}
 			if (e.equals(ADULT_IN))
 			{
-				m_numAdults++;
+				m_numAdults[index]++;
 			}
 			else if (e.equals(ADULT_OUT))
 			{
-				m_numAdults--;
+				m_numAdults[index]--;
 			}
 			else if (e.equals(CHILD_IN))
 			{
-				m_numChildren++;
+				m_numChildren[index]++;
 			}
 			else if (e.equals(CHILD_OUT))
 			{
-				m_numChildren--;
+				m_numChildren[index]--;
 			}
 			else if (e.equals(GUARD_IN))
 			{
-				m_numGuards++;
+				m_numGuards[index]++;
 			}
 			else if (e.equals(GUARD_OUT))
 			{
-				m_numGuards--;
+				m_numGuards[index]--;
+			}
+			if (index == 1)
+			{
+				System.out.println(" -> A:" + m_numAdults[1] + ",C:" + m_numChildren[1] + ",G:" + m_numGuards[1]);
 			}
 		}
 
@@ -240,6 +253,27 @@ public class MuseumSource extends PickerSource<Event>
 			m_floatSource.reset();
 			m_coin.reset();
 		}
+
+		@Override
+		public void apply(List<Event> events)
+		{
+			for (Event e : events)
+			{
+				if (!(e instanceof Deleted))
+				{
+					updateCounts(e, 1);
+				}
+			}
+			m_numAdults[0] = m_numAdults[1];
+			m_numChildren[0] = m_numChildren[1];
+			m_numGuards[0] = m_numGuards[1];
+		}
+	}
+	
+	@Override
+	public void apply(List<Event> events)
+	{
+		((Checkpointable) m_picker).apply(events);
 	}
 
 	public static List<Event> getAlphabet()

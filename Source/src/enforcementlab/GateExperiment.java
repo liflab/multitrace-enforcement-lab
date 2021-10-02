@@ -29,6 +29,7 @@ import ca.uqac.lif.cep.Pullable;
 import ca.uqac.lif.cep.Pushable;
 import ca.uqac.lif.cep.Pushable.PushableException;
 import ca.uqac.lif.cep.enforcement.CannotFixException;
+import ca.uqac.lif.cep.enforcement.Checkpointable;
 import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.enforcement.Event.Added;
 import ca.uqac.lif.cep.enforcement.Event.Deleted;
@@ -263,6 +264,10 @@ public class GateExperiment extends Experiment
 		Queue<?> queue = sink.getQueue();
 		Connector.connect(g, sink);
 		m_source.reset();
+		if (m_source instanceof Checkpointable)
+		{
+			g.notify((Checkpointable) m_source);
+		}
 		Pullable s_p = m_source.getPullableOutput();
 		Pushable g_p = g.getPushableInput();
 		int in_c = 0, out_c = 0, ins_c = 0, del_c = 0;

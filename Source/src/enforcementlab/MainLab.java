@@ -102,7 +102,8 @@ public class MainLab extends Laboratory
 			{
 				String policy = in_r.getString(POLICY);
 				String proxy = in_r.getString(PROXY);
-				String subtitle = "policy: " + policy + ", proxy: " + proxy;
+				String scoring = in_r.getString(SCORING_FORMULA);
+				String subtitle = "policy: " + policy + ", proxy: " + proxy + ", ranking: " + scoring;
 				ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
 				et_ca.setTitle("Corrective actions depending on interval (" + subtitle + ")");
 				add(et_ca);

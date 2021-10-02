@@ -17,8 +17,11 @@
  */
 package enforcementlab;
 
+import java.util.List;
 import java.util.Queue;
 
+import ca.uqac.lif.cep.enforcement.Checkpointable;
+import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.synthia.Picker;
 
@@ -28,7 +31,7 @@ import ca.uqac.lif.synthia.Picker;
  * 
  * @param <T> The type of the events produced
  */
-public class PickerSource<T> extends Source
+public class PickerSource<T> extends Source implements Checkpointable
 {
 	/**
 	 * The picker used to produce random multi-events.
@@ -86,5 +89,11 @@ public class PickerSource<T> extends Source
 		super.reset();
 		m_picker.reset();
 		m_eventCount = 0;
+	}
+
+	@Override
+	public void apply(List<Event> events)
+	{
+		// Do nothing
 	}
 }
