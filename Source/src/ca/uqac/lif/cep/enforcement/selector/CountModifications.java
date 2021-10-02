@@ -28,6 +28,11 @@ import ca.uqac.lif.cep.enforcement.Event.Deleted;
 public class CountModifications extends UniformProcessor
 {
 	/**
+	 * The name of this scoring processor.
+	 */
+	public static final transient String NAME = "Minimize changes";
+	
+	/**
 	 * The current score
 	 */
 	protected int m_score;

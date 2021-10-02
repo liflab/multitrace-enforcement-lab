@@ -22,6 +22,7 @@ import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 import enforcementlab.file.AllFilesLifecycle;
+import enforcementlab.museum.MuseumPolicy;
 
 public class PolicyProvider
 {
@@ -40,6 +41,8 @@ public class PolicyProvider
 			return new Property2();
 		case AllFilesLifecycle.NAME:
 			return new AllFilesLifecycle();
+		case MuseumPolicy.NAME:
+			return new MuseumPolicy();
 		}
 		return null;
 	}

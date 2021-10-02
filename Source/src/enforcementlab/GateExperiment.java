@@ -27,6 +27,8 @@ import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.Pullable;
 import ca.uqac.lif.cep.Pushable;
+import ca.uqac.lif.cep.Pushable.PushableException;
+import ca.uqac.lif.cep.enforcement.CannotFixException;
 import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.enforcement.Event.Added;
 import ca.uqac.lif.cep.enforcement.Event.Deleted;
@@ -50,117 +52,117 @@ public class GateExperiment extends Experiment
 	 * The name of parameter "event source".
 	 */
 	public static final transient String EVENT_SOURCE = "Event source";
-	
+
 	/**
 	 * The name of parameter "policy".
 	 */
 	public static final transient String POLICY = "Policy";
-	
+
 	/**
 	 * The name of parameter "proxy".
 	 */
 	public static final transient String PROXY = "Proxy";
-	
+
 	/**
 	 * The name of parameter "scoring formula".
 	 */
 	public static final transient String SCORING_FORMULA = "Scoring formula";
-	
+
 	/**
 	 * The name of parameter "input events".
 	 */
 	public static final transient String INPUT_EVENTS = "Input events";
-	
+
 	/**
 	 * The name of parameter "output events".
 	 */
 	public static final transient String OUTPUT_EVENTS = "Output events";
-	
+
 	/**
 	 * The name of parameter "inserted events".
 	 */
 	public static final transient String INSERTED_EVENTS = "Inserted events";
-	
+
 	/**
 	 * The name of parameter "deleted events".
 	 */
 	public static final transient String DELETED_EVENTS = "Deleted events";
-	
+
 	/**
 	 * The name of parameter "corrective actions".
 	 */
 	public static final transient String CORRECTIVE_ACTIONS = "Corrective actions";
-	
+
 	/**
 	 * The name of parameter "time".
 	 */
 	public static final transient String TIME = "Time";
-	
+
 	/**
 	 * The name of parameter "time per event".
 	 */
 	public static final transient String TIME_PER_EVENT = "Time per event";
-	
+
 	/**
 	 * The name of parameter "interval".
 	 */
 	public static final transient String INTERVAL = "Interval";
-	
+
 	/**
 	 * The name of parameter "memory".
 	 */
 	public static final transient String MEMORY = "Memory";
-	
+
 	/**
 	 * The name of parameter "throughput".
 	 */
 	public static final transient String THROUGHPUT = "Throughput";
-	
+
 	/**
 	 * The name of parameter "enforcement switches".
 	 */
 	public static final transient String ENFORCEMENT_SWITCHES = "Enforcement switches";
-	
+
 	/**
 	 * The name of parameter "endpoints scored".
 	 */
 	public static final transient String ENDPOINTS_SCORED = "Endpoints scored";
-	
+
 	/**
 	 * The name of parameter "trace score".
 	 */
 	public static final transient String TRACE_SCORE = "Trace score";
-	
+
 	/**
 	 * The source of events.
 	 */
 	protected transient Source m_source;
-	
+
 	/**
 	 * The processor acting as the policy monitor in the pipeline.
 	 */
 	protected transient Processor m_monitor;
-	
+
 	/**
 	 * The proxy used to create multi-traces in the pipeline.
 	 */
 	protected transient Proxy m_proxy;
-	
+
 	/**
 	 * The processor used as the filter in the pipeline.
 	 */
 	protected transient Filter m_filter;
-	
+
 	/**
 	 * The processor used as the selector in the pipeline.
 	 */
 	protected transient Selector m_selector;
-	
+
 	/**
 	 * The list of pipeline steps as recorded by the experiment.
 	 */
 	protected transient List<PipelineStep> m_pipelineSteps;
-	
+
 	/**
 	 * Creates a new empty enforcement pipeline experiment.
 	 */
@@ -191,7 +193,7 @@ public class GateExperiment extends Experiment
 		write(ENDPOINTS_SCORED, new JsonList());
 		m_pipelineSteps = new ArrayList<PipelineStep>();
 	}
-	
+
 	/**
 	 * Sets the source of events in this experiment.
 	 * @param p The source of events
@@ -202,7 +204,7 @@ public class GateExperiment extends Experiment
 		m_source = p;
 		return this;
 	}
-	
+
 	/**
 	 * Sets the security policy to enforce in this experiment.
 	 * @param p The processor acting as the policy monitor in the pipeline
@@ -215,7 +217,7 @@ public class GateExperiment extends Experiment
 		setInput(POLICY, name);
 		return this;
 	}
-	
+
 	/**
 	 * Sets the proxy applying corrective modifications in this experiment.
 	 * @param p The proxy used to create multi-traces in the pipeline
@@ -228,7 +230,7 @@ public class GateExperiment extends Experiment
 		setInput(PROXY, name);
 		return this;
 	}
-	
+
 	/**
 	 * Sets the filter removing invalid traces in this experiment.
 	 * @param p The processor used as the filter in the pipeline
@@ -239,7 +241,7 @@ public class GateExperiment extends Experiment
 		m_filter = p;
 		return this;
 	}
-	
+
 	/**
 	 * Sets the scoring formula used to rank traces in this experiment.
 	 * @param p The processor used as the selector in the pipeline
@@ -280,7 +282,24 @@ public class GateExperiment extends Experiment
 		{
 			in_c++;
 			Event e = (Event) s_p.next();
-			g_p.push(e);
+			try
+			{
+				g_p.push(e);
+			}
+			catch (PushableException pe)
+			{
+				if (pe.getCause() instanceof CannotFixException)
+				{
+					m_pipelineSteps.add(new PipelineStep(e, null));
+					// Exhaust the input event source
+					while (s_p.hasNext())
+					{
+						e = (Event) s_p.next();
+						m_pipelineSteps.add(new PipelineStep(e, null));
+					}
+				}
+				throw new ExperimentException(pe);
+			}
 			out_c += queue.size();
 			int mem = 0;
 			List<Event> e_output = new ArrayList<Event>();
@@ -325,7 +344,7 @@ public class GateExperiment extends Experiment
 		write(CORRECTIVE_ACTIONS, ins_c + del_c);
 		write(ENFORCEMENT_SWITCHES, g.getEnforcementSwitches());
 	}
-	
+
 	/**
 	 * Called by the factory to notify the experiment that an ID has been
 	 * assigned to it. This method circumvents the fact that an experiment does
@@ -336,7 +355,7 @@ public class GateExperiment extends Experiment
 	{
 		writeDescription();
 	}
-	
+
 	/**
 	 * Writes the description of the experiment.
 	 */
@@ -347,7 +366,7 @@ public class GateExperiment extends Experiment
 		out.append("<p><a href=\"/trace/").append(getId()).append("\">See the pipeline steps</a></p>\n");
 		setDescription(out.toString());
 	}
-	
+
 	public List<PipelineStep> getPipelineSteps()
 	{
 		return m_pipelineSteps;

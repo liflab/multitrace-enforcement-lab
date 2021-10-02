@@ -24,6 +24,7 @@ import ca.uqac.lif.synthia.Picker;
 import enforcementlab.abc.AbcSource;
 import enforcementlab.casino.CasinoSource;
 import enforcementlab.file.FileSource;
+import enforcementlab.museum.MuseumSource;
 
 import static enforcementlab.MultiTraceSelectorExperiment.EVENT_SOURCE;
 
@@ -69,6 +70,8 @@ public class TraceProvider
 			return new CasinoSource(m_coin, m_randomFloat, m_traceLength);
 		case FileSource.NAME:
 			return new FileSource(m_randomFloat, 0.1f, m_traceLength);
+		case MuseumSource.NAME:
+			return new MuseumSource(m_randomFloat, m_coin, m_traceLength);
 		}
 		return null;
 	}
@@ -88,6 +91,8 @@ public class TraceProvider
 			return CasinoSource.getAlphabet();
 		case FileSource.NAME:
 			return FileSource.getAlphabet();
+		case MuseumSource.NAME:
+			return MuseumSource.getAlphabet();
 		}
 		return null;
 	}

@@ -31,6 +31,7 @@ import ca.uqac.lif.cep.enforcement.Proxy;
 import ca.uqac.lif.cep.enforcement.Selector;
 import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
 import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
+import ca.uqac.lif.cep.enforcement.selector.CountModifications;
 import ca.uqac.lif.cep.tmf.Source;
 import ca.uqac.lif.labpal.ExperimentFactory;
 import ca.uqac.lif.labpal.Region;
@@ -41,6 +42,10 @@ import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
+import enforcementlab.museum.MinimizeIdleGuards;
+import enforcementlab.museum.MuseumPolicy;
+import enforcementlab.museum.MuseumProxy;
+import enforcementlab.museum.MuseumSource;
 
 /**
  * Produces gate experiments based on the contents of a region.
@@ -150,9 +155,17 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 			{
 			case AbcSource.NAME:
 				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), Property1.NAME, Property2.NAME))
+				{
 					return false;
+				}
 				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), InsertAny.NAME, DeleteAny.NAME, InsertAnyA.NAME, DeleteAnyA.NAME))
+				{
 					return false;
+				}
+				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME))
+				{
+					return false;
+				}
 				break;
 			case FileSource.NAME:
 				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), AllFilesLifecycle.NAME))
@@ -160,6 +173,24 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 					return false;
 				}
 				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), DeleteAny.NAME))
+				{
+					return false;
+				}
+				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME))
+				{
+					return false;
+				}
+				break;
+			case MuseumSource.NAME:
+				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), MuseumPolicy.NAME))
+				{
+					return false;
+				}
+				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), MuseumProxy.NAME))
+				{
+					return false;
+				}
+				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME, MinimizeIdleGuards.NAME))
 				{
 					return false;
 				}

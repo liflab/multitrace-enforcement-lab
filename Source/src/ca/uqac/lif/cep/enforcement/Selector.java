@@ -184,13 +184,6 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 		return m_endpointsScored;
 	}
 
-	@Override
-	public Processor duplicate(boolean with_state)
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	/**
 	 * Notifies the processor of the enforcement pipeline it is
 	 * integrated in
@@ -199,6 +192,12 @@ public abstract class Selector extends SynchronousProcessor implements Checkpoin
 	public void setEnforcementPipeline(EnforcementPipeline p)
 	{
 		m_outerPipeline = p;
+	}
+	
+	protected void copyInto(Selector s, boolean with_state)
+	{
+		// Not needed at the moment
+		throw new UnsupportedOperationException("Selector cannot be duplicated");
 	}
 
 	public float getScore()

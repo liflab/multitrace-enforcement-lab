@@ -33,14 +33,12 @@ import static enforcementlab.GateExperiment.SCORING_FORMULA;
 import static enforcementlab.GateExperiment.TIME;
 import static enforcementlab.GateExperiment.TIME_PER_EVENT;
 import static enforcementlab.GateExperiment.TRACE_SCORE;
-import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_BETS;
-import static enforcementlab.ScoringProcessorProvider.SC_MAXIMIZE_GAINS;
-import static enforcementlab.ScoringProcessorProvider.SC_MINIMIZE_CHANGES;
 
 import java.util.List;
 
 import ca.uqac.lif.cep.enforcement.proxy.DeleteAny;
 import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
+import ca.uqac.lif.cep.enforcement.selector.CountModifications;
 import ca.uqac.lif.labpal.Group;
 import ca.uqac.lif.labpal.Laboratory;
 import ca.uqac.lif.labpal.LatexNamer;
@@ -61,6 +59,10 @@ import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
+import enforcementlab.museum.MinimizeIdleGuards;
+import enforcementlab.museum.MuseumPolicy;
+import enforcementlab.museum.MuseumProxy;
+import enforcementlab.museum.MuseumSource;
 
 @SuppressWarnings("unused")
 public class MainLab extends Laboratory
@@ -91,10 +93,10 @@ public class MainLab extends Laboratory
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
 			ScenarioRegion big_r = new ScenarioRegion();
-			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME);
-			big_r.add(POLICY, Property1.NAME, Property2.NAME, AllFilesLifecycle.NAME);
-			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME);
-			big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
+			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME, MuseumSource.NAME);
+			big_r.add(POLICY, Property1.NAME, Property2.NAME, AllFilesLifecycle.NAME, MuseumPolicy.NAME);
+			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, MuseumProxy.NAME);
+			big_r.add(SCORING_FORMULA, CountModifications.NAME, MinimizeIdleGuards.NAME);
 			big_r.add(INTERVAL, 2, 4, 8);
 			for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA))
 			{
@@ -227,7 +229,7 @@ public class MainLab extends Laboratory
 		big_r.add(EVENT_SOURCE, AbcSource.NAME);
 		big_r.add(POLICY, policy);
 		big_r.add(PROXY, proxy1, proxy2);
-		big_r.add(SCORING_FORMULA, SC_MINIMIZE_CHANGES);
+		big_r.add(SCORING_FORMULA, CountModifications.NAME);
 		big_r.add(INTERVAL, 8);
 		for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, SCORING_FORMULA, INTERVAL))
 		{

@@ -6,11 +6,11 @@ import ca.uqac.lif.cep.enforcement.Event;
 
 public class PipelineStep
 {
-	public Event m_inputEvent;
+	/*@ non_null @*/ public Event m_inputEvent;
 
-	public List<Event> m_outputEvents;
+	/*@ null @*/ public List<Event> m_outputEvents;
 
-	public PipelineStep(Event in_event, List<Event> out_events)
+	public PipelineStep(/*@ non_null @*/ Event in_event, /*@ null @*/ List<Event> out_events)
 	{
 		super();
 		m_inputEvent = in_event;
@@ -21,10 +21,20 @@ public class PipelineStep
 	{
 		StringBuilder out = new StringBuilder();
 		String rowspan = "";
-		int num_out = m_outputEvents.size();
+		int num_out = 0;
+		if (m_outputEvents != null)
+		{
+			num_out = m_outputEvents.size();
+		}
 		if (num_out == 0)
 		{
-			out.append("<tr><td>").append(index).append("</td><td>").append(m_inputEvent).append("</tr><td></td></tr>\n");
+			
+			out.append("<tr><td>").append(index).append("</td><td>").append(m_inputEvent).append("</td><td>");
+			if (m_outputEvents == null)
+			{
+				out.append("X");
+			}
+			out.append("</td></tr>\n");
 		}
 		else
 		{

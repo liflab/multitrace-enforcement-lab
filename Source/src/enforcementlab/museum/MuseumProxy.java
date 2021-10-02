@@ -60,13 +60,13 @@ public class MuseumProxy extends UniformProcessor
 		{
 			// Before a child enters, may enter a guard before OR
 			// prevent the child from entering
-			mte.add(new MultiEvent(GUARD_IN, Event.EPSILON));
-			mte.add(new MultiEvent(CHILD_IN, Event.EPSILON));
+			mte.add(new MultiEvent(Event.getAdded(GUARD_IN.getLabel()), Event.EPSILON));
+			mte.add(new MultiEvent(CHILD_IN, Event.getDeleted(CHILD_IN.getLabel())));
 		}
 		else if (in_e.equals(GUARD_OUT))
 		{
 			// May prevent a guard from leaving
-			mte.add(new MultiEvent(GUARD_OUT, Event.EPSILON));
+			mte.add(new MultiEvent(GUARD_OUT, Event.getDeleted(GUARD_OUT.getLabel())));
 		}
 		else
 		{

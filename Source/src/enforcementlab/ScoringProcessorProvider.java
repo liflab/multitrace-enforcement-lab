@@ -24,24 +24,10 @@ import ca.uqac.lif.cep.enforcement.selector.CountModifications;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.casino.MaximizeBets;
 import enforcementlab.casino.MaximizeGains;
+import enforcementlab.museum.MinimizeIdleGuards;
 
 public class ScoringProcessorProvider
 {
-	/**
-	 * The "minimize changes" scoring formula.
-	 */
-	public static final transient String SC_MINIMIZE_CHANGES = "Minimize changes";
-	
-	/**
-	 * The "maximize gains" scoring formula in the casino scenario.
-	 */
-	public static final transient String SC_MAXIMIZE_GAINS = "Maximize gains";
-	
-	/**
-	 * The "maximize bets" scoring formula in the casino scenario.
-	 */
-	public static final transient String SC_MAXIMIZE_BETS = "Maximize bets";
-	
 	/**
 	 * Gets a scoring processor.
 	 * @param r The region containing parameters to select the processor.
@@ -51,17 +37,20 @@ public class ScoringProcessorProvider
 	public Processor get(Region r)
 	{
 		String property = r.getString(SCORING_FORMULA);
-		if (property.compareTo(SC_MINIMIZE_CHANGES) == 0)
+		if (property == null)
 		{
+			return null;
+		}
+		switch (property)
+		{
+		case CountModifications.NAME:
 			return new CountModifications();
-		}
-		if (property.compareTo(SC_MAXIMIZE_GAINS) == 0)
-		{
+		case MaximizeGains.NAME:
 			return new MaximizeGains();
-		}
-		if (property.compareTo(SC_MAXIMIZE_BETS) == 0)
-		{
+		case MaximizeBets.NAME:
 			return new MaximizeBets();
+		case MinimizeIdleGuards.NAME:
+			return new MinimizeIdleGuards();
 		}
 		return null;
 	}

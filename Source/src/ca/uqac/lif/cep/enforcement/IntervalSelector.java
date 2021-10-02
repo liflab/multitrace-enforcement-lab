@@ -35,4 +35,12 @@ public class IntervalSelector extends Selector
 		System.out.println(m_elements.size());
 		return m_elements.size() >= m_interval;
 	}
+
+	@Override
+	public IntervalSelector duplicate(boolean with_state)
+	{
+		IntervalSelector is = new IntervalSelector(m_rho.duplicate(with_state), m_interval);
+		super.copyInto(is, with_state);
+		return is;
+	}
 }

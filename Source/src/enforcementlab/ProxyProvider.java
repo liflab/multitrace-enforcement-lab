@@ -24,6 +24,7 @@ import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
+import enforcementlab.museum.MuseumProxy;
 
 public class ProxyProvider
 {
@@ -56,6 +57,9 @@ public class ProxyProvider
 			break;
 		case DeleteAnyA.NAME:
 			p = new DeleteAnyA();
+			break;
+		case MuseumProxy.NAME:
+			p = new MuseumProxy();
 			break;
 		}
 		if (p == null)

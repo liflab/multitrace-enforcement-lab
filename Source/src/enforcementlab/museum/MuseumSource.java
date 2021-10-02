@@ -40,7 +40,9 @@ import enforcementlab.PickerSource;
  * </ol>
  * A consequence of the last rule is that events that are invalid in the
  * current state of the trace can also be introduced. The probability of the
- * biased coin determines how likely this is to occur.
+ * biased coin determines how likely this is to occur. The source can ignore
+ * this last condition and only produce valid traces by calling
+ * {@link #includeInvalid(boolean)}.
  * <p>
  * Once the possible next events are established, one of them is picked and
  * returned.  
@@ -51,66 +53,83 @@ public class MuseumSource extends PickerSource<Event>
 	 * The name of this event source.
 	 */
 	public static final transient String NAME = "Museum";
-	
+
 	/**
 	 * The event "adult in".
 	 */
 	public static final transient Event ADULT_IN = Event.get("Adult in");
-	
+
 	/**
 	 * The event "adult out".
 	 */
 	public static final transient Event ADULT_OUT = Event.get("Adult out");
-	
+
 	/**
 	 * The event "child in".
 	 */
 	public static final transient Event CHILD_IN = Event.get("Child in");
-	
+
 	/**
 	 * The event "adult out".
 	 */
 	public static final transient Event CHILD_OUT = Event.get("Child out");
-	
+
 	/**
 	 * The event "guard in".
 	 */
 	public static final transient Event GUARD_IN = Event.get("Guard in");
-	
+
 	/**
 	 * The event "guard out".
 	 */
 	public static final transient Event GUARD_OUT = Event.get("Guard out");
-	
+
 	public MuseumSource(Picker<Float> float_source, Picker<Boolean> coin, int length)
 	{
 		super(new MuseumEventPicker(float_source, coin), length);
 	}
-	
+
+	/**
+	 * Sets whether this source may produce events violating the negative
+	 * quantity condition.
+	 * @param b Set to {@code true} to include invalid events, {@code false}
+	 * otherwise
+	 */
+	public void includeInvalid(boolean b)
+	{
+		((MuseumEventPicker) m_picker).includeInvalid(b);
+	}
+
 	protected static class MuseumEventPicker implements Picker<Event>
 	{
 		protected Picker<Float> m_floatSource;
-		
+
 		protected Picker<Boolean> m_coin;
-		
+
 		/**
 		 * The number of adults inside the museum in the trace prefix generated
 		 * so far.
 		 */
 		protected int m_numAdults;
-		
+
 		/**
 		 * The number of children inside the museum in the trace prefix generated
 		 * so far.
 		 */
 		protected int m_numChildren;
-		
+
 		/**
 		 * The number of guards inside the museum in the trace prefix generated
 		 * so far.
 		 */
 		protected int m_numGuards;
-		
+
+		/**
+		 * A flag indicating whether the picker may produce erroneous events
+		 * (more people leaving than entering).
+		 */
+		protected boolean m_withErrors = false;
+
 		/**
 		 * Creates a new museum event picker.
 		 * @param float_source A source of floating-point numbers
@@ -125,7 +144,18 @@ public class MuseumSource extends PickerSource<Event>
 			m_numChildren = 0;
 			m_numGuards = 0;
 		}
-		
+
+		/**
+		 * Sets whether this picker may produce events violating the negative
+		 * quantity condition.
+		 * @param b Set to {@code true} to include invalid events, {@code false}
+		 * otherwise
+		 */
+		public void includeInvalid(boolean b)
+		{
+			m_withErrors = b;
+		}
+
 		@Override
 		public MuseumEventPicker duplicate(boolean with_state)
 		{
@@ -143,19 +173,26 @@ public class MuseumSource extends PickerSource<Event>
 		public Event pick()
 		{
 			List<Event> available = new ArrayList<Event>();
+			// We give a higher probability to non-guards by adding them
+			// to the list multiple times
+			available.add(ADULT_IN);
 			available.add(ADULT_IN);
 			available.add(CHILD_IN);
+			available.add(CHILD_IN);
 			available.add(GUARD_IN);
-			if (m_numAdults > 0 || m_coin.pick())
+			if (m_numAdults > 0 || (m_withErrors && m_coin.pick()))
 			{
 				available.add(ADULT_OUT);
+				available.add(ADULT_OUT);
 			}
-			if (m_numChildren > 0 || m_coin.pick())
+			if (m_numChildren > 0 || (m_withErrors && m_coin.pick()))
 			{
 				available.add(CHILD_OUT);
+				available.add(CHILD_OUT);
 			}
-			if (m_numGuards > 0 || m_coin.pick())
+			if (m_numGuards > 0 || (m_withErrors && m_coin.pick()))
 			{
+				available.add(GUARD_OUT);
 				available.add(GUARD_OUT);
 			}
 			int index = (int) (m_floatSource.pick() * (float) available.size());
@@ -163,7 +200,7 @@ public class MuseumSource extends PickerSource<Event>
 			updateCounts(picked);
 			return picked;
 		}
-		
+
 		/**
 		 * Updates the count of children, adults and guards based on the selected
 		 * output event. 
@@ -204,7 +241,7 @@ public class MuseumSource extends PickerSource<Event>
 			m_coin.reset();
 		}
 	}
-	
+
 	public static List<Event> getAlphabet()
 	{
 		List<Event> alphabet = new ArrayList<Event>(3);

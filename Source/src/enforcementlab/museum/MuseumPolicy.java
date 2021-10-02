@@ -42,6 +42,11 @@ import static enforcementlab.museum.MuseumSource.GUARD_OUT;
 public class MuseumPolicy extends UniformProcessor
 {
 	/**
+	 * The name of this proxy.
+	 */
+	public static final transient String NAME = "Museum policy";
+	
+	/**
 	 * The number of adults inside the museum in the trace prefix generated
 	 * so far.
 	 */
@@ -96,6 +101,7 @@ public class MuseumPolicy extends UniformProcessor
 			return true;
 		}
 		Event e = (Event) inputs[0];
+		// First part of the policy: no negative counts for anybody
 		if (e.equals(ADULT_IN))
 		{
 			m_numAdults++;
@@ -123,7 +129,7 @@ public class MuseumPolicy extends UniformProcessor
 		else if (e.equals(CHILD_OUT))
 		{
 			m_numChildren--;
-			if (m_numChildren< 0)
+			if (m_numChildren < 0)
 			{
 				m_verdict = Value.FALSE;
 			}
@@ -131,10 +137,15 @@ public class MuseumPolicy extends UniformProcessor
 		else if (e.equals(GUARD_OUT))
 		{
 			m_numGuards--;
-			if (m_numGuards< 0)
+			if (m_numGuards < 0)
 			{
 				m_verdict = Value.FALSE;
 			}
+		}
+		// Second part: if children, there is a guard
+		if (m_numChildren > 0 && m_numGuards <= 0)
+		{
+			m_verdict = Value.FALSE;
 		}
 		outputs[0] = m_verdict;
 		return true;

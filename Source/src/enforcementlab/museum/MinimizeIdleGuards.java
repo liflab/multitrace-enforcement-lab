@@ -19,6 +19,9 @@ package enforcementlab.museum;
 
 import ca.uqac.lif.cep.enforcement.Event;
 
+import static enforcementlab.museum.MuseumSource.CHILD_OUT;
+import static enforcementlab.museum.MuseumSource.GUARD_IN;
+
 /**
  * A scoring processor that penalizes traces with idle guards. More precisely,
  * at each event:
@@ -38,13 +41,28 @@ public class MinimizeIdleGuards extends MuseumScore
 	 */
 	public static final transient String NAME = "Minimize idle guards";
 	
+	public MinimizeIdleGuards()
+	{
+		super();
+	}
+	
 	@Override
 	protected void updateScore(Event e)
 	{
-		if (m_numChildren <= 0 && m_numGuards > 0)
+		int penalty = 0;
+		if (e.equals(GUARD_IN))
 		{
-			m_score -= m_numGuards;
+			penalty = m_numGuards - m_numChildren - 1;
 		}
+		else if (e.equals(CHILD_OUT))
+		{
+			penalty = m_numGuards - m_numChildren - 1;
+		}
+		else
+		{
+			penalty = m_numGuards - m_numChildren;
+		}
+		m_score -= Math.max(0, penalty);
 	}
 
 	@Override
