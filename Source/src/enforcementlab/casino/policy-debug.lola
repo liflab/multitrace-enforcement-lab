@@ -1,4 +1,6 @@
 t1  = ite(e , 0 , ite(b , (t1[-1,0]) + (2) , t1[-1,0]))
 t2  = ite(pp , (t2[-1,5]) + (1) , ite(pm, (t2[-1,5]) - (1), t2[-1,5]))
 phi = ite(phi[-1,true], ((t2) - (t1)) >= (0), false)
+output t1
+output t2
 output phi

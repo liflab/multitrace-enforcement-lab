@@ -21,8 +21,10 @@ import ca.uqac.lif.bullwinkle.BnfParser.InvalidGrammarException;
 import ca.uqac.lif.bullwinkle.ParseTreeObjectBuilder.BuildException;
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.GroupProcessor;
+import ca.uqac.lif.cep.enforcement.Quadrilean.BooleanCast;
 import ca.uqac.lif.cep.enforcement.Quadrilean.QuadrileanCast;
 import ca.uqac.lif.cep.functions.ApplyFunction;
+import ca.uqac.lif.cep.functions.FunctionTree;
 import ca.uqac.lif.cep.polyglot.lola.LolaInterpreter;
 import ca.uqac.lif.cep.polyglot.lola.NamedGroupProcessor;
 import ca.uqac.lif.cep.tmf.Fork;
@@ -33,12 +35,12 @@ public class CasinoPolicy extends GroupProcessor
 	 * The name given to this policy.
 	 */
 	public static final String NAME = "Casino policy";
-	
+
 	/**
 	 * The LOLA interpreter used to parse the policy.
 	 */
 	protected static transient LolaInterpreter s_interpreter;
-	
+
 	static
 	{
 		try
@@ -51,22 +53,28 @@ public class CasinoPolicy extends GroupProcessor
 		}
 	}
 	
-	
 	public CasinoPolicy()
 	{
-		super(1, 1);
+		this(false);
+	}
+
+
+	public CasinoPolicy(boolean debug)
+	{
+		super(1, debug ? 3 : 1);
 		try
 		{
 			Fork f = new Fork(4);
-			ApplyFunction p_e = new ApplyFunction(CasinoFunction.isEnd);
-			ApplyFunction p_b = new ApplyFunction(CasinoFunction.isBet);
-			ApplyFunction p_pp = new ApplyFunction(CasinoFunction.casinoPaid);
-			ApplyFunction p_pm = new ApplyFunction(CasinoFunction.casinoPays);
+			ApplyFunction p_e = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.isEnd));
+			ApplyFunction p_b = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.isBet));
+			ApplyFunction p_pp = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.casinoPaid));
+			ApplyFunction p_pm = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.casinoPays));
 			Connector.connect(f, 0, p_e, 0);
 			Connector.connect(f, 1, p_b, 0);
 			Connector.connect(f, 2, p_pp, 0);
 			Connector.connect(f, 3, p_pm, 0);
-			NamedGroupProcessor ngp = (NamedGroupProcessor) s_interpreter.build(CasinoPolicy.class.getResourceAsStream("policy.lola"));
+			String filename = debug ? "policy-debug.lola" : "policy.lola";
+			NamedGroupProcessor ngp = (NamedGroupProcessor) s_interpreter.build(CasinoPolicy.class.getResourceAsStream(filename));
 			int e = ngp.getInputIndex("e");
 			int b = ngp.getInputIndex("b");
 			int pp = ngp.getInputIndex("pp");
@@ -76,16 +84,21 @@ public class CasinoPolicy extends GroupProcessor
 			Connector.connect(p_pp, 0, ngp, pp);
 			Connector.connect(p_pm, 0, ngp, pm);
 			ApplyFunction qc = new ApplyFunction(QuadrileanCast.instance);
-			Connector.connect(ngp, qc);
+			Connector.connect(ngp, 0, qc, 0);
 			addProcessors(f, p_e, p_b, p_pp, p_pm, ngp, qc);
 			associateInput(0, f, 0);
-			associateOutput(0, qc, 0);
+			associateOutput(ngp.getOutputIndex("phi"), qc, 0);
+			if (debug)
+			{
+				associateOutput(ngp.getOutputIndex("t1"), ngp, 1);
+				associateOutput(ngp.getOutputIndex("t2"), ngp, 2);
+			}
 		}
 		catch (BuildException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 }

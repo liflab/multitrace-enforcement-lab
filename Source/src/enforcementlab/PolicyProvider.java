@@ -23,6 +23,7 @@ import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 import enforcementlab.abc.Property3;
 import enforcementlab.casino.CasinoPolicy;
+import enforcementlab.casino.ProcessorPullWrapper;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.museum.MuseumPolicy;
 
@@ -48,7 +49,7 @@ public class PolicyProvider
 		case MuseumPolicy.NAME:
 			return new MuseumPolicy();
 		case CasinoPolicy.NAME:
-			return new CasinoPolicy();
+			return new ProcessorPullWrapper(new CasinoPolicy());
 		}
 		return null;
 	}

@@ -59,6 +59,48 @@ public class Quadrilean
 		}
 	}
 	
+	public static class BooleanCast extends UnaryFunction<Object,Boolean>
+	{
+		public static final BooleanCast instance = new BooleanCast();
+		
+		protected BooleanCast()
+		{
+			super(Object.class, Boolean.class);
+		}
+
+		@Override
+		public Boolean getValue(Object x)
+		{
+			if (x instanceof Boolean)
+			{
+				return (Boolean) x;
+			}
+			if (x instanceof Quadrilean.Value)
+			{
+				switch ((Quadrilean.Value) x)
+				{
+				case FALSE:
+					return false;
+				case P_FALSE:
+					return false;
+				case P_TRUE:
+					return true;
+				case TRUE:
+					return true;
+				default:
+					break;				
+				}
+			}
+			return false;
+		}
+		
+		@Override
+		public BooleanCast duplicate(boolean with_state)
+		{
+			return this;
+		}
+	}
+	
 	@SuppressWarnings("rawtypes")
 	public static class BagAnd extends UnaryFunction<Collection,Quadrilean.Value>
 	{

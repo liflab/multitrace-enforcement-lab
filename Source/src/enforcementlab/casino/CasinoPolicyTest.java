@@ -19,32 +19,70 @@ package enforcementlab.casino;
 
 import static org.junit.Assert.*;
 
-import java.util.Queue;
-
 import org.junit.Test;
 
 import ca.uqac.lif.cep.Connector;
+import ca.uqac.lif.cep.Pullable;
 import ca.uqac.lif.cep.Pushable;
-import ca.uqac.lif.cep.enforcement.Quadrilean;
-import ca.uqac.lif.cep.tmf.QueueSink;
+import ca.uqac.lif.cep.enforcement.Quadrilean.Value;
+import ca.uqac.lif.cep.tmf.QueueSource;
+import ca.uqac.lif.cep.tmf.SinkLast;
 
 public class CasinoPolicyTest
 {
 	@Test
-	public void test1()
+	public void testPull1()
 	{
-		Quadrilean.Value v;
-		CasinoPolicy fl = new CasinoPolicy();
-		QueueSink sink = new QueueSink();
+		QueueSource source = new QueueSource().setEvents(
+				new CasinoEvent.Bet("a"),
+				new CasinoEvent.Pay("casino", "."),
+				new CasinoEvent.Pay("casino", "."),
+				new CasinoEvent.Pay("casino", "."),
+				new CasinoEvent.Bet("a"),
+				new CasinoEvent.Pay(".", "casino"),
+				new CasinoEvent.Pay(".", "casino"));
+		CasinoPolicy fl = new CasinoPolicy(true);
+		Connector.connect(source, fl);
+		Pullable p = fl.getPullableOutput();
+		Pullable t1 = fl.getPullableOutput(1);
+		Pullable t2 = fl.getPullableOutput(2);
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.FALSE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.FALSE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.FALSE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+	}
+	
+	@Test
+	public void testPush1()
+	{
+		ProcessorPullWrapper fl = new ProcessorPullWrapper(new CasinoPolicy(false));
+		SinkLast sink = new SinkLast();
 		Connector.connect(fl, sink);
-		Queue<Object> queue = sink.getQueue();
 		Pushable p = fl.getPushableInput();
-		p.push(new CasinoEvent.StartGame("a"));
-		//assertFalse(queue.isEmpty());
-		//v = (Quadrilean.Value) queue.remove();
-		//assertEquals(Quadrilean.Value.TRUE, v);
 		p.push(new CasinoEvent.Bet("a"));
-		p.push(new CasinoEvent.Bet("b"));
-		p.push(new CasinoEvent.Bet("c"));
+		assertEquals(Value.TRUE, sink.getLast()[0]);
+		p.push(new CasinoEvent.Pay("casino", "."));
+		assertEquals(Value.TRUE, sink.getLast()[0]);
+		p.push(new CasinoEvent.Pay("casino", "."));
+		assertEquals(Value.TRUE, sink.getLast()[0]);
+		p.push(new CasinoEvent.Pay("casino", "."));
+		assertEquals(Value.TRUE, sink.getLast()[0]);
+		p.push(new CasinoEvent.Bet("a"));
+		assertEquals(Value.FALSE, sink.getLast()[0]);
+		p.push(new CasinoEvent.Pay(".", "casino"));
+		assertEquals(Value.FALSE, sink.getLast()[0]);
+		p.push(new CasinoEvent.Pay(".", "casino"));
+		assertEquals(Value.FALSE, sink.getLast()[0]);
 	}
 }
