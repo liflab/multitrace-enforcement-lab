@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ca.uqac.lif.cep.enforcement.proxy;
+package enforcementlab.casino;
 
 import static org.junit.Assert.*;
 
@@ -25,32 +25,26 @@ import org.junit.Test;
 
 import ca.uqac.lif.cep.Connector;
 import ca.uqac.lif.cep.Pushable;
-import ca.uqac.lif.cep.enforcement.Event;
-import ca.uqac.lif.cep.enforcement.MultiEvent;
-import ca.uqac.lif.cep.enforcement.MultiTraceElement;
+import ca.uqac.lif.cep.enforcement.Quadrilean;
 import ca.uqac.lif.cep.tmf.QueueSink;
 
-public class InsertAnyTest
+public class CasinoPolicyTest
 {
-	public static final Event A = Event.get("a");
-	public static final Event B = Event.get("b");
-	
 	@Test
 	public void test1()
 	{
-		MultiTraceElement mte;
-		MultiEvent me;
-		InsertAny proxy = new InsertAny(1, A);
+		Quadrilean.Value v;
+		CasinoPolicy fl = new CasinoPolicy();
 		QueueSink sink = new QueueSink();
-		Connector.connect(proxy, sink);
-		Pushable p = proxy.getPushableInput();
-		Queue<?> queue = sink.getQueue();
-		p.push(A);
-		mte = (MultiTraceElement) queue.remove();
-		assertEquals(2, mte.size());
-		me = mte.get(0);
-		assertEquals(2, me.size()); // [a], epsilon
-		me = mte.get(1);
-		assertEquals(1, me.size()); // [a]
+		Connector.connect(fl, sink);
+		Queue<Object> queue = sink.getQueue();
+		Pushable p = fl.getPushableInput();
+		p.push(new CasinoEvent.StartGame("a"));
+		//assertFalse(queue.isEmpty());
+		//v = (Quadrilean.Value) queue.remove();
+		//assertEquals(Quadrilean.Value.TRUE, v);
+		p.push(new CasinoEvent.Bet("a"));
+		p.push(new CasinoEvent.Bet("b"));
+		p.push(new CasinoEvent.Bet("c"));
 	}
 }

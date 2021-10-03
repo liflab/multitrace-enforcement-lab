@@ -49,7 +49,7 @@ public class PipelineTest
 		int interval = 2;
 		Event e;
 		Gate g = new Gate(new Property1(), 
-				new Proxy(new InsertAny(AbcSource.getAlphabet())), 
+				new Proxy(new InsertAny(1, AbcSource.getAlphabet())), 
 				new IntervalFilter(new Property1(), 2), 
 				new IntervalSelector(new CountModifications(), interval));
 		QueueSink sink = new QueueSink();

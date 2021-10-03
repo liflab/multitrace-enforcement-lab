@@ -45,12 +45,21 @@ public class InsertAny extends UniformProcessor
 	protected List<Event> m_insertable;
 	
 	/**
+	 * The number of times an event can be inserted for a single input
+	 * event.
+	 */
+	protected int m_times;
+	
+	/**
 	 * Creates a new instance of the proxy.
+	 * @param times The number of times an event can be inserted for a single
+	 * input event
 	 * @param events The list of events that can be inserted at any time
 	 */
-	public InsertAny(List<Event> events)
+	public InsertAny(int times, List<Event> events)
 	{
 		super(1, 1);
+		m_times = times;
 		m_insertable = new ArrayList<Event>();
 		for (Event e : events)
 		{
@@ -67,11 +76,13 @@ public class InsertAny extends UniformProcessor
 	
 	/**
 	 * Creates a new instance of the proxy.
+	 * @param times The number of times an event can be inserted for a single
+	 * input event
 	 * @param events The events that can be inserted at any time
 	 */
-	public InsertAny(Event ... events)
+	public InsertAny(int times, Event ... events)
 	{
-		this(Arrays.asList(events));
+		this(times, Arrays.asList(events));
 	}
 
 	@Override
@@ -84,7 +95,10 @@ public class InsertAny extends UniformProcessor
 		{
 			me.add(e);
 		}
-		mte.add(me);
+		for (int i = 0; i < m_times; i++)
+		{
+			mte.add(me);
+		}
 		mte.add(new MultiEvent(in_e));
 		//mte.add(me);
 		outputs[0] = mte;
@@ -94,6 +108,6 @@ public class InsertAny extends UniformProcessor
 	@Override
 	public Processor duplicate(boolean with_state)
 	{
-		return new InsertAny(m_insertable);
+		return new InsertAny(m_times, m_insertable);
 	}
 }

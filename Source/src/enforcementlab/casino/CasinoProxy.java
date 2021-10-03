@@ -15,70 +15,79 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ca.uqac.lif.cep.enforcement.proxy;
+package enforcementlab.casino;
 
-import java.util.Arrays;
-import java.util.List;
-
-import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.UniformProcessor;
 import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.enforcement.MultiEvent;
 import ca.uqac.lif.cep.enforcement.MultiTraceElement;
+import enforcementlab.casino.CasinoEvent.Bet;
+import enforcementlab.casino.CasinoEvent.EndGame;
+import enforcementlab.casino.CasinoEvent.StartGame;
 
-/**
- * Proxy that is allowed to delete any event from a set at any point in
- * an execution.
- */
-public class DeleteAny extends UniformProcessor
+public class CasinoProxy extends UniformProcessor
 {
 	/**
-	 * The name of this proxy.
+	 * A name given to this proxy.
 	 */
-	public static final transient String NAME = "Delete any";
+	public static final String NAME = "Casino proxy";
 	
 	/**
-	 * The list of events that can be deleted at any time.
+	 * A flag indicating whether a game is currently in progress.
 	 */
-	protected List<Event> m_deletable;
+	protected boolean m_inGame;
 	
 	/**
 	 * Creates a new instance of the proxy.
-	 * @param events The list of events that can be inserted at any time
 	 */
-	public DeleteAny(List<Event> events)
+	public CasinoProxy()
 	{
 		super(1, 1);
-		m_deletable = events;
-	}
-	
-	/**
-	 * Creates a new instance of the proxy.
-	 * @param events The events that can be inserted at any time
-	 */
-	public DeleteAny(Event ... events)
-	{
-		this(Arrays.asList(events));
 	}
 
 	@Override
 	protected boolean compute(Object[] inputs, Object[] outputs)
 	{
-		Event in_e = (Event) inputs[0];
+		CasinoEvent e = (CasinoEvent) inputs[0];
 		MultiTraceElement mte = new MultiTraceElement();
-		MultiEvent me = new MultiEvent(in_e);
-		if (m_deletable.contains(in_e))
+		if (!m_inGame && !(e instanceof StartGame))
 		{
-			me.add(Event.getDeleted(in_e.getLabel()));
+			// Any event but StartGame is blocked while not in game
+			MultiEvent me = new MultiEvent(Event.getDeleted(e.getLabel()));
+			mte.add(me);
 		}
-		mte.add(me);
+		else if (e instanceof Bet)
+		{
+			// A bet may or may not be accepted
+			MultiEvent me = new MultiEvent(e, Event.getDeleted(e.getLabel()));
+			mte.add(me);
+		}
+		else
+		{
+			if (e instanceof StartGame)
+			{
+				m_inGame = true;
+			}
+			if (e instanceof EndGame)
+			{
+				m_inGame = false;
+			}
+			// Other events are let through
+			MultiEvent me = new MultiEvent(e);
+			mte.add(me);
+		}
 		outputs[0] = mte;
 		return true;
 	}
 
 	@Override
-	public Processor duplicate(boolean with_state)
+	public CasinoProxy duplicate(boolean with_state)
 	{
-		return new DeleteAny(m_deletable);
+		CasinoProxy cp = new CasinoProxy();
+		if (with_state)
+		{
+			cp.m_inGame = m_inGame;
+		}
+		return cp;
 	}
 }

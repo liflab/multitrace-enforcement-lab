@@ -57,6 +57,7 @@ import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
+import enforcementlab.abc.Property3;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
 import enforcementlab.museum.MinimizeIdleGuards;
@@ -94,7 +95,7 @@ public class MainLab extends Laboratory
 			add(g);
 			ScenarioRegion big_r = new ScenarioRegion();
 			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME, MuseumSource.NAME);
-			big_r.add(POLICY, Property1.NAME, Property2.NAME, AllFilesLifecycle.NAME, MuseumPolicy.NAME);
+			big_r.add(POLICY, Property1.NAME, Property2.NAME, Property3.NAME, AllFilesLifecycle.NAME, MuseumPolicy.NAME);
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, MuseumProxy.NAME);
 			big_r.add(SCORING_FORMULA, CountModifications.NAME, MinimizeIdleGuards.NAME);
 			big_r.add(INTERVAL, 2, 4, 8);
@@ -176,6 +177,9 @@ public class MainLab extends Laboratory
 				}
 			}
 		}
+		
+		// Lab stats
+		add(new LabStats(this));
 
 		// Impact of proxy precision
 		/*{

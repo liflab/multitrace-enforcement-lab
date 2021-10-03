@@ -40,6 +40,13 @@ import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
+import enforcementlab.abc.Property3;
+import enforcementlab.casino.CasinoPolicy;
+import enforcementlab.casino.CasinoProxy;
+import enforcementlab.casino.CasinoSource;
+import enforcementlab.casino.MaximizeBets;
+import enforcementlab.casino.MaximizeGains;
+import enforcementlab.casino.MaximizeGames;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
 import enforcementlab.museum.MinimizeIdleGuards;
@@ -154,7 +161,7 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 			switch (source)
 			{
 			case AbcSource.NAME:
-				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), Property1.NAME, Property2.NAME))
+				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), Property1.NAME, Property2.NAME, Property3.NAME))
 				{
 					return false;
 				}
@@ -191,6 +198,20 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 					return false;
 				}
 				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME, MinimizeIdleGuards.NAME))
+				{
+					return false;
+				}
+				break;
+			case CasinoSource.NAME:
+				if (isFixed(point, POLICY) && !oneOf(point.getString(POLICY), CasinoPolicy.NAME))
+				{
+					return false;
+				}
+				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), CasinoProxy.NAME))
+				{
+					return false;
+				}
+				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME, MaximizeGains.NAME, MaximizeGames.NAME, MaximizeBets.NAME))
 				{
 					return false;
 				}

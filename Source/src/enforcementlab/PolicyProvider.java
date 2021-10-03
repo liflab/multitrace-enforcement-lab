@@ -21,6 +21,8 @@ import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
+import enforcementlab.abc.Property3;
+import enforcementlab.casino.CasinoPolicy;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.museum.MuseumPolicy;
 
@@ -39,10 +41,14 @@ public class PolicyProvider
 			return new Property1();
 		case Property2.NAME:
 			return new Property2();
+		case Property3.NAME:
+			return new Property3();
 		case AllFilesLifecycle.NAME:
 			return new AllFilesLifecycle();
 		case MuseumPolicy.NAME:
 			return new MuseumPolicy();
+		case CasinoPolicy.NAME:
+			return new CasinoPolicy();
 		}
 		return null;
 	}

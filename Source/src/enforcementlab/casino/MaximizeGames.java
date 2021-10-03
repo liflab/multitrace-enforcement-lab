@@ -27,6 +27,11 @@ import ca.uqac.lif.cep.util.Numbers;
 
 public class MaximizeGames extends GroupProcessor
 {
+	/**
+	 * The name of this scoring processor.
+	 */
+	public static final transient String NAME = "Maximize games";
+	
 	public MaximizeGames()
 	{
 		super(1, 1);

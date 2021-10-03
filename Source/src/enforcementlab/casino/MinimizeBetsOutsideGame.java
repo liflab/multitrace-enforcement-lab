@@ -31,6 +31,11 @@ import ca.uqac.lif.cep.util.Equals;
 
 public class MinimizeBetsOutsideGame extends OperatorC
 {
+	/**
+	 * The name of this scoring processor.
+	 */
+	public static final transient String NAME = "Minimize bets outside game";
+	
 	public MinimizeBetsOutsideGame()
 	{
 		super(getCondition(), Quadrilean.Value.TRUE);

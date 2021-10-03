@@ -45,7 +45,7 @@ public class TraceProvider
 	/**
 	 * The length of the traces to generate
 	 */
-	protected int m_traceLength = 100;
+	protected int m_traceLength = 10;
 	
 	public TraceProvider(Picker<Boolean> coin, Picker<Float> random_float)
 	{

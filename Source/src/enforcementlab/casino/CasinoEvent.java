@@ -46,6 +46,11 @@ public class CasinoEvent extends Event
 		{
 			super("Bet(" + player + ")");
 		}	
+		
+		public String getPlayer()
+		{
+			return m_label.substring(4, m_label.length() - 5);
+		}
 	}
 	
 	public static class StartGame extends CasinoEvent
@@ -54,6 +59,11 @@ public class CasinoEvent extends Event
 		{
 			super("StartGame(" + player + ")");
 		}	
+		
+		public String getPlayer()
+		{
+			return m_label.substring(10, m_label.length() - 11);
+		}
 	}
 	
 	public static class EndGame extends CasinoEvent

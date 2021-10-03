@@ -24,6 +24,8 @@ import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
+import enforcementlab.abc.Property3;
+import enforcementlab.casino.CasinoProxy;
 import enforcementlab.museum.MuseumProxy;
 
 public class ProxyProvider
@@ -47,7 +49,15 @@ public class ProxyProvider
 		switch (name)
 		{
 		case InsertAny.NAME:
-			p = new InsertAny(m_traceProvider.getAlphabet(r));
+			String policy = r.getString(GateExperiment.POLICY);
+			if (policy.compareTo(Property3.NAME) == 0)
+			{
+				p = new InsertAny(2, m_traceProvider.getAlphabet(r));
+			}
+			else
+			{
+				p = new InsertAny(1, m_traceProvider.getAlphabet(r));
+			}
 			break;
 		case InsertAnyA.NAME:
 			p = new InsertAnyA();
@@ -60,6 +70,9 @@ public class ProxyProvider
 			break;
 		case MuseumProxy.NAME:
 			p = new MuseumProxy();
+			break;
+		case CasinoProxy.NAME:
+			p = new CasinoProxy();
 			break;
 		}
 		if (p == null)

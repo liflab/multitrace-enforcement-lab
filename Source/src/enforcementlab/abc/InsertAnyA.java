@@ -29,6 +29,6 @@ public class InsertAnyA extends InsertAny
 	
 	public InsertAnyA()
 	{
-		super(Event.get("a"));
+		super(1, Event.get("a"));
 	}
 }

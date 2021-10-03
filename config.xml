@@ -78,13 +78,35 @@
     </dependency>
     <dependency>
       <!--
-      BeepBeep
+      FSM palette
       -->
       <name>BeepBeep FSM palette</name>
       <classname>ca.uqac.lif.cep.fsm.MooreMachine</classname>
       <bundle>true</bundle>
       <files>
         <jar>https://github.com/liflab/beepbeep-3-palettes/releases/download/v20210430/fsm.jar</jar>
+      </files>
+    </dependency>
+    <dependency>
+      <!--
+      DSL palette
+      -->
+      <name>BeepBeep DSL palette</name>
+      <classname>ca.uqac.lif.cep.dsl.MultilineGroupProcessorBuilder</classname>
+      <bundle>true</bundle>
+      <files>
+        <jar>https://github.com/liflab/beepbeep-3-palettes/releases/download/v20210430/dsl.jar</jar>
+      </files>
+    </dependency>
+    <dependency>
+      <!--
+      Polyglot
+      -->
+      <name>BeepBeep Polyglot palette</name>
+      <classname>ca.uqac.lif.cep.polyglot.Polyglot</classname>
+      <bundle>true</bundle>
+      <files>
+        <jar>https://github.com/liflab/beepbeep-3-polyglot/releases/download/v0.1/polyglot.jar</jar>
       </files>
     </dependency>
     <dependency>
