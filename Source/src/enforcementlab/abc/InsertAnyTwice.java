@@ -15,27 +15,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ca.uqac.lif.cep.enforcement;
+package enforcementlab.abc;
 
-import ca.uqac.lif.cep.Processor;
+import java.util.List;
 
-public class IntervalFilter extends Filter
+import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
+
+public class InsertAnyTwice extends InsertAny
 {
-	protected int m_interval;
+	/**
+	 * The name of this proxy.
+	 */
+	public static final transient String NAME = "Insert any twice";
 	
-	public IntervalFilter(Processor mu, int interval)
+	public InsertAnyTwice(Event[] events)
 	{
-		super(mu);
-		m_interval = interval;
+		super(2, events);
 	}
-
-	@Override
-	protected boolean decide()
+	
+	public InsertAnyTwice(List<Event> events)
 	{
-		if (m_elements.size() >= m_interval)
-		{
-			return true;
-		}
-		return false;
+		super(2, events);
+	}
+	
+	@Override
+	public InsertAnyTwice duplicate(boolean with_state)
+	{
+		return new InsertAnyTwice(m_insertable);
 	}
 }

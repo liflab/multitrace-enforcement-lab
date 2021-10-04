@@ -17,11 +17,13 @@
  */
 package enforcementlab.casino;
 
+import java.util.List;
+
 import ca.uqac.lif.cep.UniformProcessor;
+import ca.uqac.lif.cep.enforcement.Checkpointable;
 import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.enforcement.MultiEvent;
 import ca.uqac.lif.cep.enforcement.MultiTraceElement;
-import enforcementlab.casino.CasinoEvent.Bet;
 import enforcementlab.casino.CasinoEvent.EndGame;
 import enforcementlab.casino.CasinoEvent.StartGame;
 
@@ -31,47 +33,52 @@ public class CasinoProxy extends UniformProcessor
 	 * A name given to this proxy.
 	 */
 	public static final String NAME = "Casino proxy";
-	
+
 	/**
 	 * A flag indicating whether a game is currently in progress.
 	 */
-	protected boolean m_inGame;
-	
+	protected boolean[] m_inGame;
+
+	protected static final transient StartGame START = new StartGame("A");
+
+	protected static final transient Event END = Event.getAdded(new EndGame("A").getLabel());
+
 	/**
 	 * Creates a new instance of the proxy.
 	 */
 	public CasinoProxy()
 	{
 		super(1, 1);
+		m_inGame = new boolean[] {false, false};
 	}
 
 	@Override
 	protected boolean compute(Object[] inputs, Object[] outputs)
 	{
-		CasinoEvent e = (CasinoEvent) inputs[0];
+		Event e = (Event) inputs[0];
+		String label = e.getLabel();
 		MultiTraceElement mte = new MultiTraceElement();
-		if (!m_inGame && !(e instanceof StartGame))
+		if (m_inGame[0])
 		{
-			// Any event but StartGame is blocked while not in game
-			MultiEvent me = new MultiEvent(Event.getDeleted(e.getLabel()));
+			MultiEvent ins_before = new MultiEvent(END, Event.EPSILON); // May end the game
+			mte.add(ins_before);
+		}
+		if (label.startsWith("Start"))
+		{
+			m_inGame[0] = true;
+		}
+		if (label.startsWith("End"))
+		{
+			m_inGame[0] = false;
+		}
+		if (label.startsWith("Bet") || label.startsWith("Pay(casino"))
+		{
+			// A bet may or may not be accepted, and the casino may refuse to pay
+			MultiEvent me = new MultiEvent(e, Event.getDeleted(label));
 			mte.add(me);
 		}
-		else if (e instanceof Bet)
+		else 
 		{
-			// A bet may or may not be accepted
-			MultiEvent me = new MultiEvent(e, Event.getDeleted(e.getLabel()));
-			mte.add(me);
-		}
-		else
-		{
-			if (e instanceof StartGame)
-			{
-				m_inGame = true;
-			}
-			if (e instanceof EndGame)
-			{
-				m_inGame = false;
-			}
 			// Other events are let through
 			MultiEvent me = new MultiEvent(e);
 			mte.add(me);

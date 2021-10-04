@@ -133,6 +133,11 @@ public class GateExperiment extends Experiment
 	 * The name of parameter "trace score".
 	 */
 	public static final transient String TRACE_SCORE = "Trace score";
+	
+	/**
+	 * The name of parameter "max memory".
+	 */
+	public static final transient String MAX_MEMORY = "Max memory";
 
 	/**
 	 * The source of events.
@@ -170,6 +175,7 @@ public class GateExperiment extends Experiment
 	public GateExperiment()
 	{
 		super();
+		describe(EVENT_SOURCE, "The name of the source of events for this experiment");
 		describe(POLICY, "The security policy being enforced");
 		describe(PROXY, "The proxy applying corrective modifications");
 		describe(SCORING_FORMULA, "The scoring formula used to rank traces");
@@ -182,6 +188,7 @@ public class GateExperiment extends Experiment
 		describe(TRACE_SCORE, "The score given to the current trace");
 		describe(TIME_PER_EVENT, "The time (in milliseconds) taken by the selector to process each input event");
 		describe(MEMORY, "The memory consumed by the enforcement pipeline");
+		describe(MAX_MEMORY, "The maximum memory consumed by the enforcement pipeline");
 		describe(THROUGHPUT, "The average number of events per second ingested by the enforcement pipeline");
 		describe(CORRECTIVE_ACTIONS, "The total number of events that have been added or deleted");
 		write(INPUT_EVENTS, new JsonList());
@@ -198,11 +205,13 @@ public class GateExperiment extends Experiment
 	/**
 	 * Sets the source of events in this experiment.
 	 * @param p The source of events
+	 * @param name The name of the event source
 	 * @return This experiment
 	 */
-	public GateExperiment setSource(Source p)
+	public GateExperiment setSource(Source p, String name)
 	{
 		m_source = p;
+		setInput(EVENT_SOURCE, name);
 		return this;
 	}
 
@@ -283,9 +292,17 @@ public class GateExperiment extends Experiment
 		sp.ignoreAccessChecks(true);
 		long start = System.currentTimeMillis();
 		long lap = start;
+		int scale = TraceProvider.TRACE_LENGTH / 20;
+		float prog = 0;
+		int max_mem = 0;
 		while (s_p.hasNext())
 		{
 			in_c++;
+			if (in_c % scale == 0)
+			{
+				prog += 0.05;
+				setProgression(prog);
+			}
 			Event e = (Event) s_p.next();
 			try
 			{
@@ -327,6 +344,10 @@ public class GateExperiment extends Experiment
 			try
 			{
 				mem = sp.print(m_filter.getElements()).intValue();
+				if (mem > max_mem)
+				{
+					max_mem = mem;
+				}
 			}
 			catch (PrintException e1)
 			{
@@ -343,11 +364,15 @@ public class GateExperiment extends Experiment
 			eps_l.add(m_selector.getEndpointsScored());
 			sco_l.add(m_selector.getScore());
 		}
-		long end = System.currentTimeMillis();
-		write(TIME, end - start);
-		write(THROUGHPUT,  in_c * 100 / (end - start));
+		long duration = System.currentTimeMillis() - start;
+		write(TIME, duration);
+		if (duration > 0)
+		{
+			write(THROUGHPUT,  in_c * 100 / duration);
+		}
 		write(CORRECTIVE_ACTIONS, ins_c + del_c);
 		write(ENFORCEMENT_SWITCHES, g.getEnforcementSwitches());
+		write(MAX_MEMORY, max_mem);
 	}
 
 	/**

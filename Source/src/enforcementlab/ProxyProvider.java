@@ -24,6 +24,8 @@ import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
+import enforcementlab.abc.InsertAnyB;
+import enforcementlab.abc.InsertAnyTwice;
 import enforcementlab.abc.Property3;
 import enforcementlab.casino.CasinoProxy;
 import enforcementlab.museum.MuseumProxy;
@@ -59,8 +61,14 @@ public class ProxyProvider
 				p = new InsertAny(1, m_traceProvider.getAlphabet(r));
 			}
 			break;
+		case InsertAnyTwice.NAME:
+			p = new InsertAnyTwice(m_traceProvider.getAlphabet(r));
+			break;
 		case InsertAnyA.NAME:
 			p = new InsertAnyA();
+			break;
+		case InsertAnyB.NAME:
+			p = new InsertAnyB();
 			break;
 		case DeleteAny.NAME:
 			p = new DeleteAny(m_traceProvider.getAlphabet(r));

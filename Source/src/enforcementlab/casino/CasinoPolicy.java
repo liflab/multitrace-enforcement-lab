@@ -17,88 +17,114 @@
  */
 package enforcementlab.casino;
 
-import ca.uqac.lif.bullwinkle.BnfParser.InvalidGrammarException;
-import ca.uqac.lif.bullwinkle.ParseTreeObjectBuilder.BuildException;
-import ca.uqac.lif.cep.Connector;
-import ca.uqac.lif.cep.GroupProcessor;
-import ca.uqac.lif.cep.enforcement.Quadrilean.BooleanCast;
-import ca.uqac.lif.cep.enforcement.Quadrilean.QuadrileanCast;
-import ca.uqac.lif.cep.functions.ApplyFunction;
-import ca.uqac.lif.cep.functions.FunctionTree;
-import ca.uqac.lif.cep.polyglot.lola.LolaInterpreter;
-import ca.uqac.lif.cep.polyglot.lola.NamedGroupProcessor;
-import ca.uqac.lif.cep.tmf.Fork;
+import ca.uqac.lif.cep.UniformProcessor;
+import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.Quadrilean;
 
-public class CasinoPolicy extends GroupProcessor
+public class CasinoPolicy extends UniformProcessor
 {
 	/**
 	 * The name given to this policy.
 	 */
 	public static final String NAME = "Casino policy";
-
-	/**
-	 * The LOLA interpreter used to parse the policy.
-	 */
-	protected static transient LolaInterpreter s_interpreter;
-
-	static
+	
+	protected int m_totalBets;
+	
+	protected int m_balance;
+	
+	protected int m_initialBalance;
+	
+	protected boolean m_violated;
+	
+	protected boolean m_inGame;
+	
+	public CasinoPolicy(int initial_balance)
 	{
-		try
-		{
-			s_interpreter = new LolaInterpreter();
-		}
-		catch (InvalidGrammarException e)
-		{
-			// Won't happen
-		}
+		super(1, 1);
+		m_totalBets = 0;
+		m_initialBalance = initial_balance;
+		m_balance = m_initialBalance;
+		m_violated = false;
+		m_inGame = false;
 	}
 	
-	public CasinoPolicy()
+	@Override
+	public void reset()
 	{
-		this(false);
+		super.reset();
+		m_totalBets = 0;
+		m_balance = m_initialBalance;
+		m_violated = false;
+		m_inGame = false;
 	}
 
-
-	public CasinoPolicy(boolean debug)
+	@Override
+	protected boolean compute(Object[] inputs, Object[] outputs)
 	{
-		super(1, debug ? 3 : 1);
-		try
+		Event e = (Event) inputs[0];
+		String label = e.getLabel();
+		if (label.startsWith("End"))
 		{
-			Fork f = new Fork(4);
-			ApplyFunction p_e = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.isEnd));
-			ApplyFunction p_b = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.isBet));
-			ApplyFunction p_pp = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.casinoPaid));
-			ApplyFunction p_pm = new ApplyFunction(new FunctionTree(BooleanCast.instance, CasinoFunction.casinoPays));
-			Connector.connect(f, 0, p_e, 0);
-			Connector.connect(f, 1, p_b, 0);
-			Connector.connect(f, 2, p_pp, 0);
-			Connector.connect(f, 3, p_pm, 0);
-			String filename = debug ? "policy-debug.lola" : "policy.lola";
-			NamedGroupProcessor ngp = (NamedGroupProcessor) s_interpreter.build(CasinoPolicy.class.getResourceAsStream(filename));
-			int e = ngp.getInputIndex("e");
-			int b = ngp.getInputIndex("b");
-			int pp = ngp.getInputIndex("pp");
-			int pm = ngp.getInputIndex("pm");
-			Connector.connect(p_e, 0, ngp, e);
-			Connector.connect(p_b, 0, ngp, b);
-			Connector.connect(p_pp, 0, ngp, pp);
-			Connector.connect(p_pm, 0, ngp, pm);
-			ApplyFunction qc = new ApplyFunction(QuadrileanCast.instance);
-			Connector.connect(ngp, 0, qc, 0);
-			addProcessors(f, p_e, p_b, p_pp, p_pm, ngp, qc);
-			associateInput(0, f, 0);
-			associateOutput(ngp.getOutputIndex("phi"), qc, 0);
-			if (debug)
+			m_totalBets = 0;
+			if (!m_inGame)
 			{
-				associateOutput(ngp.getOutputIndex("t1"), ngp, 1);
-				associateOutput(ngp.getOutputIndex("t2"), ngp, 2);
+				m_violated = true;
 			}
+			m_inGame = false;
 		}
-		catch (BuildException e)
+		else if (label.startsWith("Start"))
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if (m_inGame)
+			{
+				m_violated = true;
+			}
+			m_inGame = true;
 		}
+		else if (label.startsWith("Bet"))
+		{
+			if (!m_inGame)
+			{
+				m_violated = true;
+			}
+			m_totalBets += 1;
+		}
+		else if (label.startsWith("Pay(casino"))
+		{
+			if (m_inGame || m_balance == 0)
+			{
+				m_violated = true;
+			}
+			m_balance--;
+		}
+		else
+		{
+			m_balance++;
+		}
+		//System.out.println("Bets " + m_totalBets + ", bal " + m_balance);
+		if (m_violated || (m_totalBets * 0.25) > m_balance)
+		{
+			outputs[0] = Quadrilean.Value.FALSE;
+			m_violated = true;
+		}
+		else
+		{
+			outputs[0] = Quadrilean.Value.TRUE;
+		}
+		//System.out.println(m_balance);
+		return true;
+	}
 
+	@Override
+	public CasinoPolicy duplicate(boolean with_state)
+	{
+		CasinoPolicy cp = new CasinoPolicy(m_initialBalance);
+		if (with_state)
+		{
+			cp.m_totalBets = m_totalBets;
+			cp.m_balance = m_balance;
+			cp.m_violated = m_violated;
+			cp.m_inGame = m_inGame;
+		}
+		return cp;
 	}
 }

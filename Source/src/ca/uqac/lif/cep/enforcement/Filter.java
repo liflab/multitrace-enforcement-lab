@@ -42,6 +42,8 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 	protected Processor m_current;
 
 	protected Endpoint<Event,Value> m_checkpointEndpoint;
+	
+	protected boolean m_notified;
 
 	public Filter(Processor mu)
 	{
@@ -51,6 +53,7 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		m_current = m_mu.duplicate();
 		m_elements = new ArrayList<PrefixTreeElement>();
 		m_checkpointEndpoint = new Endpoint<Event,Value>(m_checkpoint);
+		m_notified = false;
 	}
 
 	@Override
@@ -65,6 +68,23 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		}
 		m_current = m_checkpointEndpoint.m_processor.duplicate(true);
 		m_elements.clear();
+		m_notified = false;
+	}
+	
+	public void forceOutput()
+	{
+		m_notified = true;
+	}
+	
+	@Override
+	public void reset()
+	{
+		super.reset();
+		m_notified = false;
+		m_elements.clear();
+		m_checkpoint.reset();
+		m_current.reset();
+		m_checkpointEndpoint.reset();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -84,7 +104,7 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		boolean one_good = false;
 		for (int j = 0; j < m_elements.size(); j++)
 		{
-			if (!decide())
+			if (!decide() && !m_notified)
 			{
 				return true;
 			}
@@ -139,6 +159,7 @@ public abstract class Filter extends SynchronousProcessor implements Checkpointa
 		if (one_good)
 		{
 			outputs.add(new Object[] {out_list});
+			m_notified = false;
 		}
 		return true;
 	}

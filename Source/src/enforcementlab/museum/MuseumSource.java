@@ -213,10 +213,6 @@ public class MuseumSource extends PickerSource<Event>
 		 */
 		protected void updateCounts(Event e, int index)
 		{
-			if (index == 1)
-			{
-				System.out.print( e + " A:" + m_numAdults[1] + ",C:" + m_numChildren[1] + ",G:" + m_numGuards[1]);
-			}
 			if (e.equals(ADULT_IN))
 			{
 				m_numAdults[index]++;
@@ -240,10 +236,6 @@ public class MuseumSource extends PickerSource<Event>
 			else if (e.equals(GUARD_OUT))
 			{
 				m_numGuards[index]--;
-			}
-			if (index == 1)
-			{
-				System.out.println(" -> A:" + m_numAdults[1] + ",C:" + m_numChildren[1] + ",G:" + m_numGuards[1]);
 			}
 		}
 

@@ -24,6 +24,8 @@ import ca.uqac.lif.cep.enforcement.selector.CountModifications;
 import ca.uqac.lif.labpal.Region;
 import enforcementlab.casino.MaximizeBets;
 import enforcementlab.casino.MaximizeGains;
+import enforcementlab.file.MaximizeWrites;
+import enforcementlab.museum.MaximizeChildren;
 import enforcementlab.museum.MinimizeIdleGuards;
 
 public class ScoringProcessorProvider
@@ -45,12 +47,16 @@ public class ScoringProcessorProvider
 		{
 		case CountModifications.NAME:
 			return new CountModifications();
+		case MaximizeWrites.NAME:
+			return new MaximizeWrites();
 		case MaximizeGains.NAME:
 			return new MaximizeGains();
 		case MaximizeBets.NAME:
 			return new MaximizeBets();
 		case MinimizeIdleGuards.NAME:
 			return new MinimizeIdleGuards();
+		case MaximizeChildren.NAME:
+			return new MaximizeChildren();
 		}
 		return null;
 	}

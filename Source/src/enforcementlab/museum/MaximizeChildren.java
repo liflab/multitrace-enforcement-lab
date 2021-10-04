@@ -15,27 +15,43 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ca.uqac.lif.cep.enforcement;
+package enforcementlab.museum;
 
-import ca.uqac.lif.cep.Processor;
+import ca.uqac.lif.cep.enforcement.Event;
 
-public class IntervalFilter extends Filter
+import static enforcementlab.museum.MuseumSource.CHILD_IN;
+
+/**
+ * A scoring processor that adds one point of score for every child
+ * entering the museum. 
+ */
+public class MaximizeChildren extends MuseumScore
 {
-	protected int m_interval;
+	/**
+	 * A name given to this scoring processor.
+	 */
+	public static final transient String NAME = "Maximize children";
 	
-	public IntervalFilter(Processor mu, int interval)
+	public MaximizeChildren()
 	{
-		super(mu);
-		m_interval = interval;
+		super();
+	}
+	
+	@Override
+	protected void updateScore(Event e)
+	{
+		if (e.equals(CHILD_IN))
+		{
+			m_score++;
+		}
 	}
 
 	@Override
-	protected boolean decide()
+	public MaximizeChildren duplicate(boolean with_state)
 	{
-		if (m_elements.size() >= m_interval)
-		{
-			return true;
-		}
-		return false;
+		MaximizeChildren p = new MaximizeChildren();
+		copyInto(p, with_state);
+		return p;
 	}
+
 }

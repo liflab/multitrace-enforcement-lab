@@ -25,11 +25,13 @@ import static enforcementlab.GateExperiment.EVENT_SOURCE;
 import static enforcementlab.GateExperiment.INPUT_EVENTS;
 import static enforcementlab.GateExperiment.INSERTED_EVENTS;
 import static enforcementlab.GateExperiment.INTERVAL;
+import static enforcementlab.GateExperiment.MAX_MEMORY;
 import static enforcementlab.GateExperiment.MEMORY;
 import static enforcementlab.GateExperiment.OUTPUT_EVENTS;
 import static enforcementlab.GateExperiment.POLICY;
 import static enforcementlab.GateExperiment.PROXY;
 import static enforcementlab.GateExperiment.SCORING_FORMULA;
+import static enforcementlab.GateExperiment.THROUGHPUT;
 import static enforcementlab.GateExperiment.TIME;
 import static enforcementlab.GateExperiment.TIME_PER_EVENT;
 import static enforcementlab.GateExperiment.TRACE_SCORE;
@@ -55,11 +57,20 @@ import enforcementlab.GateExperimentFactory.ScenarioRegion;
 import enforcementlab.abc.AbcSource;
 import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
+import enforcementlab.abc.InsertAnyB;
+import enforcementlab.abc.InsertAnyTwice;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 import enforcementlab.abc.Property3;
+import enforcementlab.casino.CasinoLolaPolicy;
+import enforcementlab.casino.CasinoProxy;
+import enforcementlab.casino.CasinoSource;
+import enforcementlab.casino.MaximizeBets;
+import enforcementlab.casino.MaximizeGains;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
+import enforcementlab.file.MaximizeWrites;
+import enforcementlab.museum.MaximizeChildren;
 import enforcementlab.museum.MinimizeIdleGuards;
 import enforcementlab.museum.MuseumPolicy;
 import enforcementlab.museum.MuseumProxy;
@@ -94,20 +105,22 @@ public class MainLab extends Laboratory
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
 			ScenarioRegion big_r = new ScenarioRegion();
-			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME, MuseumSource.NAME);
-			big_r.add(POLICY, Property1.NAME, Property2.NAME, Property3.NAME, AllFilesLifecycle.NAME, MuseumPolicy.NAME);
-			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, MuseumProxy.NAME);
-			big_r.add(SCORING_FORMULA, CountModifications.NAME, MinimizeIdleGuards.NAME);
-			big_r.add(INTERVAL, 2, 4, 8);
+			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME, MuseumSource.NAME, CasinoSource.NAME);
+			big_r.add(POLICY, Property1.NAME, Property2.NAME, Property3.NAME, AllFilesLifecycle.NAME, MuseumPolicy.NAME, CasinoLolaPolicy.NAME);
+			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, InsertAnyB.NAME, MuseumProxy.NAME, CasinoProxy.NAME);
+			big_r.add(SCORING_FORMULA, CountModifications.NAME, MaximizeChildren.NAME, MinimizeIdleGuards.NAME, MaximizeBets.NAME, MaximizeGains.NAME);
+			big_r.add(INTERVAL, 8);
+			ExperimentTable t_summary = new ExperimentTable(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA, THROUGHPUT, MAX_MEMORY, ENFORCEMENT_SWITCHES, CORRECTIVE_ACTIONS);
+			t_summary.setTitle("Summary of throughput and memory for each scenario");
+			t_summary.setNickname("tSummary");
+			add(t_summary);
 			for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA))
 			{
 				String policy = in_r.getString(POLICY);
 				String proxy = in_r.getString(PROXY);
 				String scoring = in_r.getString(SCORING_FORMULA);
 				String subtitle = "policy: " + policy + ", proxy: " + proxy + ", ranking: " + scoring;
-				ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
-				et_ca.setTitle("Corrective actions depending on interval (" + subtitle + ")");
-				add(et_ca);
+				String short_subtitle = policy + proxy + scoring;
 				for (Region c_r : in_r.all(INTERVAL))
 				{
 					String subsubtitle = subtitle +  ", interval: " + c_r.getInt(INTERVAL);
@@ -117,67 +130,103 @@ public class MainLab extends Laboratory
 						continue;
 					}
 					g.add(exp);
+					t_summary.add(exp);
 					{
 						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, OUTPUT_EVENTS, INSERTED_EVENTS, DELETED_EVENTS);
 						et.setTitle("Input vs output events (" + subsubtitle + ")");
 						et.add(exp);
+						et.setNickname(LatexNamer.latexify("tInOut" + short_subtitle));
+						et.setShowInList(false);
 						add(et);
 						Scatterplot plot = new Scatterplot(et);
 						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Output events");
 						plot.withPoints(false);
 						plot.setTitle(et.getTitle());
+						plot.setNickname(LatexNamer.latexify("pInOut" + short_subtitle));
 						add(plot);
 					}
 					{
 						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, TRACE_SCORE);
 						et.setTitle("Evolution of trace score (" + subsubtitle + ")");
 						et.add(exp);
+						et.setShowInList(false);
+						et.setNickname(LatexNamer.latexify("tScore" + short_subtitle));
 						add(et);
 						Scatterplot plot = new Scatterplot(et);
 						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Score");
 						plot.withPoints(false);
 						plot.setTitle(et.getTitle());
+						plot.setNickname(LatexNamer.latexify("pScore" + short_subtitle));
 						add(plot);
 					}
 					{
 						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, ENDPOINTS_SCORED);
 						et.setTitle("Number of endpoints scored (" + subsubtitle + ")");
 						et.add(exp);
+						et.setShowInList(false);
+						et.setNickname(LatexNamer.latexify("tEndpoints" + short_subtitle));
 						add(et);
 						Scatterplot plot = new Scatterplot(et);
 						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Endpoints scored");
 						plot.withPoints(false);
 						plot.setTitle(et.getTitle());
+						plot.setNickname(LatexNamer.latexify("pEndpoints" + short_subtitle));
 						add(plot);
 					}
 					{
 						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, MEMORY);
 						et.setTitle("Memory consumption (" + subsubtitle + ")");
 						et.add(exp);
+						et.setShowInList(false);
+						et.setNickname(LatexNamer.latexify("tMemory" + short_subtitle));
 						add(et);
 						Scatterplot plot = new Scatterplot(et);
 						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Memory (B)");
 						plot.withPoints(false);
 						plot.setTitle(et.getTitle());
+						plot.setNickname(LatexNamer.latexify("pMemory" + short_subtitle));
 						add(plot);
-						et_ca.add(exp);
 					}
 					{
 						ExperimentTable et = new ExperimentTable(INPUT_EVENTS, TIME_PER_EVENT);
 						et.setTitle("Time per event (" + subsubtitle + ")");
 						et.add(exp);
+						et.setShowInList(false);
+						et.setNickname(LatexNamer.latexify("tThroughput" + short_subtitle));
 						add(et);
 						Scatterplot plot = new Scatterplot(et);
 						plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Time per event (ms)");
 						plot.withPoints(false);
 						plot.setTitle(et.getTitle());
+						plot.setNickname(LatexNamer.latexify("pThroughput" + short_subtitle));
 						add(plot);
-						et_ca.add(exp);
 					}
 				}
 			}
 		}
-		
+
+		// Comparison of interval
+		/*{
+			Group g = new Group("Impact of interval");
+			g.setDescription("Comparison of the same scenario for two different intervals.");
+			add(g);
+			ScenarioRegion big_r = new ScenarioRegion();
+			big_r.add(EVENT_SOURCE, AbcSource.NAME, FileSource.NAME, MuseumSource.NAME, CasinoSource.NAME);
+			big_r.add(POLICY, Property1.NAME, Property2.NAME, Property3.NAME, AllFilesLifecycle.NAME, MuseumPolicy.NAME, CasinoLolaPolicy.NAME);
+			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, MuseumProxy.NAME, CasinoProxy.NAME);
+			big_r.add(SCORING_FORMULA, CountModifications.NAME, MinimizeIdleGuards.NAME, MaximizeBets.NAME);
+			big_r.add(INTERVAL, 10);
+			ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
+			et_ca.setTitle("Corrective actions depending on interval (" + subtitle + ")");
+			add(et_ca);
+			for (Region c_r : in_r.all(INTERVAL))
+			{
+				String subsubtitle = subtitle +  ", interval: " + c_r.getInt(INTERVAL);
+				GateExperiment exp = factory.get(c_r);
+			}
+			et_ca.add(exp);
+		}*/
+
 		// Lab stats
 		add(new LabStats(this));
 
@@ -218,7 +267,7 @@ public class MainLab extends Laboratory
 			}
 		}*/
 	}
-	
+
 	/**
 	 * Sets up experiments, tables and plots that compare the action of two
 	 * proxies on the same policy. 
@@ -273,7 +322,7 @@ public class MainLab extends Laboratory
 			}
 		}
 	}
-	
+
 	@Override
 	public void setupCallbacks(List<WebCallback> callbacks)
 	{

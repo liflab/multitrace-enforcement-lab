@@ -38,9 +38,12 @@ import ca.uqac.lif.labpal.Region;
 import enforcementlab.abc.AbcSource;
 import enforcementlab.abc.DeleteAnyA;
 import enforcementlab.abc.InsertAnyA;
+import enforcementlab.abc.InsertAnyB;
+import enforcementlab.abc.InsertAnyTwice;
 import enforcementlab.abc.Property1;
 import enforcementlab.abc.Property2;
 import enforcementlab.abc.Property3;
+import enforcementlab.casino.CasinoLolaPolicy;
 import enforcementlab.casino.CasinoPolicy;
 import enforcementlab.casino.CasinoProxy;
 import enforcementlab.casino.CasinoSource;
@@ -49,6 +52,8 @@ import enforcementlab.casino.MaximizeGains;
 import enforcementlab.casino.MaximizeGames;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
+import enforcementlab.file.MaximizeWrites;
+import enforcementlab.museum.MaximizeChildren;
 import enforcementlab.museum.MinimizeIdleGuards;
 import enforcementlab.museum.MuseumPolicy;
 import enforcementlab.museum.MuseumProxy;
@@ -126,7 +131,7 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 		Selector mts = new IntervalSelector(score, interval);
 		GateExperiment ge = new GateExperiment();
 		ge.setInput(INTERVAL, interval);
-		ge.setSource(src);
+		ge.setSource(src, r.getString(EVENT_SOURCE));
 		ge.setPolicy(mon, r.getString(POLICY));
 		ge.setProxy(prox, r.getString(PROXY));
 		ge.setFilter(new IntervalFilter(mon, interval));
@@ -165,8 +170,13 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 				{
 					return false;
 				}
-				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), InsertAny.NAME, DeleteAny.NAME, InsertAnyA.NAME, DeleteAnyA.NAME))
+				if (isFixed(point, PROXY) && !oneOf(point.getString(PROXY), InsertAny.NAME, DeleteAny.NAME, InsertAnyA.NAME, DeleteAnyA.NAME, InsertAnyB.NAME, InsertAnyTwice.NAME))
 				{
+					return false;
+				}
+				if (isFixed(point, POLICY) && oneOf(point.getString(POLICY), Property2.NAME, Property3.NAME) && isFixed(point, PROXY) && oneOf(point.getString(PROXY), InsertAnyB.NAME))
+				{
+					// Proxy "insert b" cannot enforce Property 2 (stuttering a) and 3 ((abc*))
 					return false;
 				}
 				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME))
@@ -183,7 +193,7 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 				{
 					return false;
 				}
-				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME))
+				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME, MaximizeWrites.NAME))
 				{
 					return false;
 				}
@@ -197,7 +207,7 @@ public class GateExperimentFactory extends ExperimentFactory<MainLab,GateExperim
 				{
 					return false;
 				}
-				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME, MinimizeIdleGuards.NAME))
+				if (isFixed(point, SCORING_FORMULA) && !oneOf(point.getString(SCORING_FORMULA), CountModifications.NAME, MinimizeIdleGuards.NAME, MaximizeChildren.NAME))
 				{
 					return false;
 				}

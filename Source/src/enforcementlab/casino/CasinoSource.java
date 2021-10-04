@@ -34,7 +34,7 @@ public class CasinoSource extends PickerSource<Event>
 	 */
 	public static final transient String NAME = "Casino";
 	
-	protected static final String[] s_players = new String[] {"a", "b", "c", "d"};
+	protected static final String[] s_players = new String[] {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
 	
 	public CasinoSource(Picker<Boolean> coin, Picker<Float> float_source, int length)
 	{
@@ -55,5 +55,11 @@ public class CasinoSource extends PickerSource<Event>
 			}
 		}
 		return alphabet;
+	}
+	
+	@Override
+	public void apply(List<Event> events)
+	{
+		((CasinoEventPicker) m_picker).apply(events);
 	}
 }

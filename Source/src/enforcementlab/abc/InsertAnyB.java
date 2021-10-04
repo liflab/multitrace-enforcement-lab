@@ -15,27 +15,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ca.uqac.lif.cep.enforcement;
+package enforcementlab.abc;
 
-import ca.uqac.lif.cep.Processor;
+import ca.uqac.lif.cep.enforcement.Event;
+import ca.uqac.lif.cep.enforcement.proxy.InsertAny;
 
-public class IntervalFilter extends Filter
+/**
+ * A type of {@link InsertAny} that only inserts a's.
+ */
+public class InsertAnyB extends InsertAny
 {
-	protected int m_interval;
+	public static final transient String NAME = "Insert any b";
 	
-	public IntervalFilter(Processor mu, int interval)
+	public InsertAnyB()
 	{
-		super(mu);
-		m_interval = interval;
-	}
-
-	@Override
-	protected boolean decide()
-	{
-		if (m_elements.size() >= m_interval)
-		{
-			return true;
-		}
-		return false;
+		super(1, Event.get("b"));
 	}
 }

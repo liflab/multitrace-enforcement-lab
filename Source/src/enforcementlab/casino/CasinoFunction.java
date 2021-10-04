@@ -17,6 +17,7 @@
  */
 package enforcementlab.casino;
 
+import ca.uqac.lif.cep.enforcement.Event;
 import ca.uqac.lif.cep.enforcement.Quadrilean;
 import ca.uqac.lif.cep.enforcement.Quadrilean.Value;
 import ca.uqac.lif.cep.functions.UnaryFunction;
@@ -33,17 +34,17 @@ public class CasinoFunction
 	
 	public static final CasinoPaid casinoPaid = new CasinoPaid();
 
-	public static class IsBet extends UnaryFunction<CasinoEvent,Quadrilean.Value>
+	public static class IsBet extends UnaryFunction<Event,Quadrilean.Value>
 	{
 		protected IsBet()
 		{
-			super(CasinoEvent.class, Quadrilean.Value.class);
+			super(Event.class, Quadrilean.Value.class);
 		}
 
 		@Override
-		public Value getValue(CasinoEvent e)
+		public Value getValue(Event e)
 		{
-			if (e instanceof CasinoEvent.Bet)
+			if (e.getLabel().startsWith("Bet"))
 			{
 				return Quadrilean.Value.TRUE;
 			}
@@ -57,17 +58,17 @@ public class CasinoFunction
 		}
 	}
 
-	public static class IsStartGame extends UnaryFunction<CasinoEvent,Quadrilean.Value>
+	public static class IsStartGame extends UnaryFunction<Event,Quadrilean.Value>
 	{
 		protected IsStartGame()
 		{
-			super(CasinoEvent.class, Quadrilean.Value.class);
+			super(Event.class, Quadrilean.Value.class);
 		}
 
 		@Override
-		public Value getValue(CasinoEvent e)
+		public Value getValue(Event e)
 		{
-			if (e instanceof CasinoEvent.StartGame)
+			if (e.getLabel().startsWith("Start"))
 			{
 				return Quadrilean.Value.TRUE;
 			}
@@ -81,17 +82,17 @@ public class CasinoFunction
 		}
 	}
 
-	public static class IsEndGame extends UnaryFunction<CasinoEvent,Quadrilean.Value>
+	public static class IsEndGame extends UnaryFunction<Event,Quadrilean.Value>
 	{
 		protected IsEndGame()
 		{
-			super(CasinoEvent.class, Quadrilean.Value.class);
+			super(Event.class, Quadrilean.Value.class);
 		}
 
 		@Override
-		public Value getValue(CasinoEvent e)
+		public Value getValue(Event e)
 		{
-			if (e instanceof CasinoEvent.EndGame)
+			if (e.getLabel().startsWith("End"))
 			{
 				return Quadrilean.Value.TRUE;
 			}
@@ -105,17 +106,17 @@ public class CasinoFunction
 		}
 	}
 
-	public static class CasinoPays extends UnaryFunction<CasinoEvent,Quadrilean.Value>
+	public static class CasinoPays extends UnaryFunction<Event,Quadrilean.Value>
 	{
 		protected CasinoPays()
 		{
-			super(CasinoEvent.class, Quadrilean.Value.class);
+			super(Event.class, Quadrilean.Value.class);
 		}
 
 		@Override
-		public Value getValue(CasinoEvent e)
+		public Value getValue(Event e)
 		{
-			if (e instanceof CasinoEvent.Pay && ((CasinoEvent.Pay) e).getFrom().compareTo("casino") == 0)
+			if (e.getLabel().contains("casino,"))
 			{
 				return Quadrilean.Value.TRUE;
 			}
@@ -129,17 +130,17 @@ public class CasinoFunction
 		}
 	}
 	
-	public static class CasinoPaid extends UnaryFunction<CasinoEvent,Quadrilean.Value>
+	public static class CasinoPaid extends UnaryFunction<Event,Quadrilean.Value>
 	{
 		protected CasinoPaid()
 		{
-			super(CasinoEvent.class, Quadrilean.Value.class);
+			super(Event.class, Quadrilean.Value.class);
 		}
 
 		@Override
-		public Value getValue(CasinoEvent e)
+		public Value getValue(Event e)
 		{
-			if (e instanceof CasinoEvent.Pay && ((CasinoEvent.Pay) e).getTo().compareTo("casino") == 0)
+			if (e.getLabel().contains(",casino"))
 			{
 				return Quadrilean.Value.TRUE;
 			}

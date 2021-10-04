@@ -45,7 +45,7 @@ public class TraceProvider
 	/**
 	 * The length of the traces to generate
 	 */
-	protected int m_traceLength = 10;
+	public static int TRACE_LENGTH = 1000;
 	
 	public TraceProvider(Picker<Boolean> coin, Picker<Float> random_float)
 	{
@@ -65,13 +65,13 @@ public class TraceProvider
 		switch (r.getString(EVENT_SOURCE))
 		{
 		case AbcSource.NAME:
-			return new AbcSource(m_randomFloat, m_traceLength);
+			return new AbcSource(m_randomFloat, TRACE_LENGTH);
 		case CasinoSource.NAME:
-			return new CasinoSource(m_coin, m_randomFloat, m_traceLength);
+			return new CasinoSource(m_coin, m_randomFloat, TRACE_LENGTH);
 		case FileSource.NAME:
-			return new FileSource(m_randomFloat, 0.1f, m_traceLength);
+			return new FileSource(m_randomFloat, 0.1f, TRACE_LENGTH);
 		case MuseumSource.NAME:
-			return new MuseumSource(m_randomFloat, m_coin, m_traceLength);
+			return new MuseumSource(m_randomFloat, m_coin, TRACE_LENGTH);
 		}
 		return null;
 	}

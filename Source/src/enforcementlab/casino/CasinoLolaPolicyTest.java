@@ -28,12 +28,45 @@ import ca.uqac.lif.cep.enforcement.Quadrilean.Value;
 import ca.uqac.lif.cep.tmf.QueueSource;
 import ca.uqac.lif.cep.tmf.SinkLast;
 
-public class CasinoPolicyTest
+public class CasinoLolaPolicyTest
 {
+	@Test
+	public void testPull1()
+	{
+		QueueSource source = new QueueSource().setEvents(
+				new CasinoEvent.Bet("a"),
+				new CasinoEvent.Pay("casino", "."),
+				new CasinoEvent.Pay("casino", "."),
+				new CasinoEvent.Pay("casino", "."),
+				new CasinoEvent.Bet("a"),
+				new CasinoEvent.Pay(".", "casino"),
+				new CasinoEvent.Pay(".", "casino"));
+		CasinoLolaPolicy fl = new CasinoLolaPolicy(true);
+		Connector.connect(source, fl);
+		Pullable p = fl.getPullableOutput();
+		Pullable t1 = fl.getPullableOutput(1);
+		Pullable t2 = fl.getPullableOutput(2);
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.TRUE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.FALSE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.FALSE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+		assertEquals(Value.FALSE, p.pull());
+		System.out.println(t1.pull() + " " + t2.pull());
+	}
+	
 	@Test
 	public void testPush1()
 	{
-		CasinoPolicy fl = new CasinoPolicy(5);
+		ProcessorPullWrapper fl = new ProcessorPullWrapper(new CasinoLolaPolicy(false));
 		SinkLast sink = new SinkLast();
 		Connector.connect(fl, sink);
 		Pushable p = fl.getPushableInput();
@@ -51,7 +84,7 @@ public class CasinoPolicyTest
 		assertEquals(Value.FALSE, sink.getLast()[0]);
 		p.push(new CasinoEvent.Pay(".", "casino"));
 		assertEquals(Value.FALSE, sink.getLast()[0]);
-		CasinoPolicy fl_dup = fl.duplicate(true);
+		ProcessorPullWrapper fl_dup = fl.duplicate(true);
 		SinkLast sink_dup = new SinkLast();
 		Connector.connect(fl_dup, sink_dup);
 		Pushable p_dup = fl_dup.getPushableInput();
