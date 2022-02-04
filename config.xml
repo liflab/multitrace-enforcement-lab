@@ -33,7 +33,7 @@
   <author>Rania Taleb, Raphaël Khoury, Sylvain Hallé</author>
   
   <!-- The project's main class -->
-  <mainclass>MyLaboratory</mainclass>
+  <mainclass>enforcementlab.MainLab</mainclass>
   
   <!-- Output jar -->
   <jar>
@@ -62,7 +62,7 @@
       <classname>ca.uqac.lif.labpal.Laboratory</classname>
       <bundle>true</bundle>
       <files>
-        <zip>https://github.com/liflab/labpal/releases/download/v2.11.9a/labpal-2.11.9a.zip</zip>
+        <zip>https://github.com/liflab/labpal/releases/download/v2.11.10/labpal-2.11.10.zip</zip>
       </files>
     </dependency>
     <dependency>
@@ -106,7 +106,7 @@
       <classname>ca.uqac.lif.cep.polyglot.Polyglot</classname>
       <bundle>true</bundle>
       <files>
-        <jar>https://github.com/liflab/beepbeep-3-polyglot/releases/download/v0.1/polyglot.jar</jar>
+        <jar>https://github.com/liflab/beepbeep-3-polyglot/releases/download/v0.2/polyglot.jar</jar>
       </files>
     </dependency>
     <dependency>

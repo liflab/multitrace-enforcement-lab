@@ -40,20 +40,20 @@ public class CountModificationsTest
 		Pushable p = cm.getPushableInput();
 		int score;
 		p.push(Event.get("a"));
-		score = (int) queue.remove();
+		score = (Integer) queue.remove();
 		assertEquals(0, score);
 		p.push(Event.getAdded("a"));
-		score = (int) queue.remove();
+		score = (Integer) queue.remove();
 		assertEquals(-1, score);
 		p.push(Event.get("b"));
-		score = (int) queue.remove();
+		score = (Integer) queue.remove();                                                   
 		assertEquals(-1, score);
 		p.push(Event.getDeleted("b"));
-		score = (int) queue.remove();
+		score = (Integer) queue.remove();
 		assertEquals(-2, score);
 		cm.reset();
 		p.push(Event.getAdded("a"));
-		score = (int) queue.remove();
+		score = (Integer) queue.remove();
 		assertEquals(-1, score);
 	}
 }
