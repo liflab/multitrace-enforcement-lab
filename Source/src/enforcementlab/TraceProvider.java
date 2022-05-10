@@ -25,11 +25,16 @@ import enforcementlab.abc.AbcSource;
 import enforcementlab.casino.CasinoSource;
 import enforcementlab.file.FileSource;
 import enforcementlab.museum.MuseumSource;
+import enforcementlab.museum.MuseumSourceAlternate;
 
 import static enforcementlab.MultiTraceSelectorExperiment.EVENT_SOURCE;
 
 import java.util.List;
 
+/**
+ * An object which, given the name of an event source, provides an instance of
+ * the said source.
+ */
 public class TraceProvider
 {	
 	/**
@@ -72,6 +77,8 @@ public class TraceProvider
 			return new FileSource(m_randomFloat, 0.1f, TRACE_LENGTH);
 		case MuseumSource.NAME:
 			return new MuseumSource(m_randomFloat, m_coin, TRACE_LENGTH);
+		case MuseumSourceAlternate.NAME:
+			return new MuseumSourceAlternate(m_randomFloat, m_coin, TRACE_LENGTH);
 		}
 		return null;
 	}
@@ -93,6 +100,8 @@ public class TraceProvider
 			return FileSource.getAlphabet();
 		case MuseumSource.NAME:
 			return MuseumSource.getAlphabet();
+		case MuseumSourceAlternate.NAME:
+			return MuseumSourceAlternate.getAlphabet();
 		}
 		return null;
 	}

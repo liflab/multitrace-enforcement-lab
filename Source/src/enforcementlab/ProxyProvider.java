@@ -1,6 +1,6 @@
 /*
     A benchmark for multi-trace runtime enforcement in BeepBeep 3
-    Copyright (C) 2021 Laboratoire d'informatique formelle
+    Copyright (C) 2021-2022 Laboratoire d'informatique formelle
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
@@ -28,8 +28,16 @@ import enforcementlab.abc.InsertAnyB;
 import enforcementlab.abc.InsertAnyTwice;
 import enforcementlab.abc.Property3;
 import enforcementlab.casino.CasinoProxy;
+import enforcementlab.museum.ChildrenShadow;
+import enforcementlab.museum.DeleteChildren;
+import enforcementlab.museum.InsertGuard;
+import enforcementlab.museum.InsertGuardNoCount;
 import enforcementlab.museum.MuseumProxy;
 
+/**
+ * An object which, given the name of a proxy, provides an instance of the said
+ * proxy.
+ */
 public class ProxyProvider
 {
 	protected TraceProvider m_traceProvider;
@@ -78,6 +86,18 @@ public class ProxyProvider
 			break;
 		case MuseumProxy.NAME:
 			p = new MuseumProxy();
+			break;
+		case DeleteChildren.NAME:
+			p = new DeleteChildren();
+			break;
+		case InsertGuard.NAME:
+			p = new InsertGuard();
+			break;
+		case InsertGuardNoCount.NAME:
+			p = new InsertGuardNoCount();
+			break;
+		case ChildrenShadow.NAME:
+			p = new ChildrenShadow();
 			break;
 		case CasinoProxy.NAME:
 			p = new CasinoProxy();

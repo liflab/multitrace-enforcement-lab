@@ -89,6 +89,17 @@
     </dependency>
     <dependency>
       <!--
+      LTL palette
+      -->
+      <name>BeepBeep LTL palette</name>
+      <classname>ca.uqac.lif.cep.ltl.Troolean</classname>
+      <bundle>true</bundle>
+      <files>
+        <jar>https://github.com/liflab/beepbeep-3-palettes/releases/download/v20210430/ltl.jar</jar>
+      </files>
+    </dependency>
+    <dependency>
+      <!--
       DSL palette
       -->
       <name>BeepBeep DSL palette</name>
@@ -117,7 +128,7 @@
       <classname>ca.uqac.lif.synthia.Picker</classname>
       <bundle>true</bundle>
       <files>
-        <zip>https://github.com/liflab/synthia/releases/download/v0.2/synthia-0.2.zip</zip>
+        <jar>https://github.com/liflab/synthia/releases/download/v0.2.1/synthia.jar</jar>
       </files>
     </dependency>
     <dependency>

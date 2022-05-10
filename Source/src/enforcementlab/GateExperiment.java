@@ -1,6 +1,6 @@
 /*
     A benchmark for multi-trace runtime enforcement in BeepBeep 3
-    Copyright (C) 2021 Laboratoire d'informatique formelle
+    Copyright (C) 2021-2022 Laboratoire d'informatique formelle
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published
@@ -93,6 +93,11 @@ public class GateExperiment extends Experiment
 	 * The name of parameter "corrective actions".
 	 */
 	public static final transient String CORRECTIVE_ACTIONS = "Corrective actions";
+	
+	/**
+	 * The name of parameter "total corrective actions".
+	 */
+	public static final transient String TOTAL_CORRECTIVE_ACTIONS = "Total corrective actions";
 
 	/**
 	 * The name of parameter "time".
@@ -122,7 +127,7 @@ public class GateExperiment extends Experiment
 	/**
 	 * The name of parameter "enforcement switches".
 	 */
-	public static final transient String ENFORCEMENT_SWITCHES = "Enforcement switches";
+	public static final transient String TOTAL_ENFORCEMENT_SWITCHES = "Enforcement switches";
 
 	/**
 	 * The name of parameter "endpoints scored".
@@ -190,7 +195,9 @@ public class GateExperiment extends Experiment
 		describe(MEMORY, "The memory consumed by the enforcement pipeline");
 		describe(MAX_MEMORY, "The maximum memory consumed by the enforcement pipeline");
 		describe(THROUGHPUT, "The average number of events per second ingested by the enforcement pipeline");
-		describe(CORRECTIVE_ACTIONS, "The total number of events that have been added or deleted");
+		describe(CORRECTIVE_ACTIONS, "The number of events that have been added or deleted");
+		describe(TOTAL_CORRECTIVE_ACTIONS, "The total number of events that have been added or deleted");
+		write(CORRECTIVE_ACTIONS, new JsonList());
 		write(INPUT_EVENTS, new JsonList());
 		write(OUTPUT_EVENTS, new JsonList());
 		write(INSERTED_EVENTS, new JsonList());
@@ -280,6 +287,7 @@ public class GateExperiment extends Experiment
 		Pullable s_p = m_source.getPullableOutput();
 		Pushable g_p = g.getPushableInput();
 		int in_c = 0, out_c = 0, ins_c = 0, del_c = 0;
+		JsonList ca_l = (JsonList) read(CORRECTIVE_ACTIONS);
 		JsonList in_l = (JsonList) read(INPUT_EVENTS);
 		JsonList out_l = (JsonList) read(OUTPUT_EVENTS);
 		JsonList ins_l = (JsonList) read(INSERTED_EVENTS);
@@ -356,6 +364,7 @@ public class GateExperiment extends Experiment
 			long now = System.currentTimeMillis();
 			tpe_l.add(now - lap);
 			lap = now;
+			ca_l.add(ins_c + del_c);
 			in_l.add(in_c);
 			out_l.add(out_c);
 			ins_l.add(ins_c);
@@ -370,8 +379,8 @@ public class GateExperiment extends Experiment
 		{
 			write(THROUGHPUT,  in_c * 100 / duration);
 		}
-		write(CORRECTIVE_ACTIONS, ins_c + del_c);
-		write(ENFORCEMENT_SWITCHES, g.getEnforcementSwitches());
+		write(TOTAL_CORRECTIVE_ACTIONS, ins_c + del_c);
+		write(TOTAL_ENFORCEMENT_SWITCHES, g.getEnforcementSwitches());
 		write(MAX_MEMORY, max_mem);
 	}
 

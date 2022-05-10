@@ -62,7 +62,8 @@ public class MinimizeIdleGuards extends MuseumScore
 		{
 			penalty = m_numGuards - m_numChildren;
 		}
-		m_score -= Math.max(0, Math.min(0, penalty));
+		//System.out.println("Penalty : " + penalty);
+		m_score += penalty;
 	}
 
 	@Override

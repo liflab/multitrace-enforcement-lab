@@ -20,7 +20,7 @@ package enforcementlab;
 import static enforcementlab.GateExperiment.CORRECTIVE_ACTIONS;
 import static enforcementlab.GateExperiment.DELETED_EVENTS;
 import static enforcementlab.GateExperiment.ENDPOINTS_SCORED;
-import static enforcementlab.GateExperiment.ENFORCEMENT_SWITCHES;
+import static enforcementlab.GateExperiment.TOTAL_ENFORCEMENT_SWITCHES;
 import static enforcementlab.GateExperiment.EVENT_SOURCE;
 import static enforcementlab.GateExperiment.INPUT_EVENTS;
 import static enforcementlab.GateExperiment.INSERTED_EVENTS;
@@ -34,6 +34,7 @@ import static enforcementlab.GateExperiment.SCORING_FORMULA;
 import static enforcementlab.GateExperiment.THROUGHPUT;
 import static enforcementlab.GateExperiment.TIME;
 import static enforcementlab.GateExperiment.TIME_PER_EVENT;
+import static enforcementlab.GateExperiment.TOTAL_CORRECTIVE_ACTIONS;
 import static enforcementlab.GateExperiment.TRACE_SCORE;
 
 import java.util.List;
@@ -70,11 +71,16 @@ import enforcementlab.casino.MaximizeGains;
 import enforcementlab.file.AllFilesLifecycle;
 import enforcementlab.file.FileSource;
 import enforcementlab.file.MaximizeWrites;
+import enforcementlab.museum.ChildrenShadow;
+import enforcementlab.museum.DeleteChildren;
+import enforcementlab.museum.InsertGuard;
+import enforcementlab.museum.InsertGuardNoCount;
 import enforcementlab.museum.MaximizeChildren;
 import enforcementlab.museum.MinimizeIdleGuards;
 import enforcementlab.museum.MuseumPolicy;
 import enforcementlab.museum.MuseumProxy;
 import enforcementlab.museum.MuseumSource;
+import enforcementlab.museum.MuseumSourceAlternate;
 
 @SuppressWarnings("unused")
 public class MainLab extends Laboratory
@@ -100,7 +106,7 @@ public class MainLab extends Laboratory
 		GateExperimentFactory factory = new GateExperimentFactory(this, p_policy, p_proxy, p_trace, p_score);
 
 		// General behavior
-		{
+		if (false) {
 			Group g = new Group("General behavior");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
@@ -110,7 +116,7 @@ public class MainLab extends Laboratory
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, InsertAnyB.NAME, MuseumProxy.NAME, CasinoProxy.NAME);
 			big_r.add(SCORING_FORMULA, CountModifications.NAME, MaximizeChildren.NAME, MinimizeIdleGuards.NAME, MaximizeBets.NAME, MaximizeGains.NAME);
 			big_r.add(INTERVAL, 8);
-			ExperimentTable t_summary = new ExperimentTable(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA, THROUGHPUT, MAX_MEMORY, ENFORCEMENT_SWITCHES, CORRECTIVE_ACTIONS);
+			ExperimentTable t_summary = new ExperimentTable(EVENT_SOURCE, POLICY, PROXY, SCORING_FORMULA, THROUGHPUT, MAX_MEMORY, TOTAL_ENFORCEMENT_SWITCHES, TOTAL_CORRECTIVE_ACTIONS);
 			t_summary.setTitle("Summary of throughput and memory for each scenario");
 			t_summary.setNickname("tSummary");
 			add(t_summary);
@@ -216,7 +222,7 @@ public class MainLab extends Laboratory
 			big_r.add(PROXY, InsertAny.NAME, DeleteAny.NAME, MuseumProxy.NAME, CasinoProxy.NAME);
 			big_r.add(SCORING_FORMULA, CountModifications.NAME, MinimizeIdleGuards.NAME, MaximizeBets.NAME);
 			big_r.add(INTERVAL, 10);
-			ExperimentTable et_ca = new ExperimentTable(INTERVAL, CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
+			ExperimentTable et_ca = new ExperimentTable(INTERVAL, TOTAL_CORRECTIVE_ACTIONS, ENFORCEMENT_SWITCHES);
 			et_ca.setTitle("Corrective actions depending on interval (" + subtitle + ")");
 			add(et_ca);
 			for (Region c_r : in_r.all(INTERVAL))
@@ -230,14 +236,26 @@ public class MainLab extends Laboratory
 		// Lab stats
 		add(new LabStats(this));
 
-		// Impact of proxy precision
-		/*{
+		// Impact of proxy
+		{
 			Group g = new Group("Impact of proxy precision");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
-			setupComparisonProxy(factory, g, Property1.NAME, DeleteAny.NAME, DeleteAnyA.NAME);
-			setupComparisonProxy(factory, g, Property1.NAME, InsertAny.NAME, InsertAnyA.NAME);
-		}*/
+			setupComparisonProxy(factory, g, AbcSource.NAME, 2, Property1.NAME, CountModifications.NAME, DeleteAny.NAME, DeleteAnyA.NAME);
+			setupComparisonProxy(factory, g, AbcSource.NAME, 2, Property1.NAME, CountModifications.NAME, InsertAny.NAME, InsertAnyA.NAME);
+		}
+		{
+			Group g = new Group("Proxy comparison (museum scenario, minimize changes)");
+			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
+			add(g);
+			setupComparisonProxy(factory, g, MuseumSourceAlternate.NAME, 4, MuseumPolicy.NAME, CountModifications.NAME, DeleteChildren.NAME, InsertGuard.NAME, /*InsertGuardNoCount.NAME,*/ ChildrenShadow.NAME);
+		}
+		{
+			Group g = new Group("Proxy comparison (museum scenario, minimize idle guards)");
+			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
+			add(g);
+			setupComparisonProxy(factory, g, MuseumSourceAlternate.NAME, 4, MuseumPolicy.NAME, MinimizeIdleGuards.NAME, DeleteChildren.NAME, InsertGuard.NAME, /*InsertGuardNoCount.NAME,*/ ChildrenShadow.NAME);
+		}
 
 		// Comparing the impact of interval length on time for brute-force vs. prefix tree
 		/*{
@@ -269,44 +287,65 @@ public class MainLab extends Laboratory
 	}
 
 	/**
-	 * Sets up experiments, tables and plots that compare the action of two
+	 * Sets up experiments, tables and plots that compare the action of multiple
 	 * proxies on the same policy. 
 	 * @param factory The factory used to obtain experiment instances
 	 * @param g The group to which experiments are to be added
+	 * @param event_source The source of events for the scenario
 	 * @param policy The name of the policy to enforce
-	 * @param proxy1 The name of the first proxy
-	 * @param proxy2 The name of the second proxy
+	 * @param scoring_formula The formula used to rank the traces
+	 * @param proxies The names of the proxies
 	 */
-	protected void setupComparisonProxy(GateExperimentFactory factory, Group g, String policy, String proxy1, String proxy2)
+	protected void setupComparisonProxy(GateExperimentFactory factory, Group g, String event_source, int interval, String policy, String scoring_formula, String  ... proxies)
 	{
 		Region big_r = new Region();
-		big_r.add(EVENT_SOURCE, AbcSource.NAME);
+		big_r.add(EVENT_SOURCE, event_source);
 		big_r.add(POLICY, policy);
-		big_r.add(PROXY, proxy1, proxy2);
-		big_r.add(SCORING_FORMULA, CountModifications.NAME);
-		big_r.add(INTERVAL, 8);
+		big_r.add(PROXY, proxies);
+		big_r.add(SCORING_FORMULA, scoring_formula);
+		big_r.add(INTERVAL, interval);
 		for (Region in_r : big_r.all(EVENT_SOURCE, POLICY, SCORING_FORMULA, INTERVAL))
 		{
 			ExperimentTable et_events = new ExperimentTable(INPUT_EVENTS, PROXY, TIME_PER_EVENT);
 			{
 				et_events.setShowInList(false);
 				TransformedTable tt = new TransformedTable(new ExpandAsColumns(PROXY, TIME_PER_EVENT), et_events);
-				tt.setTitle("Impact of proxy precision on time (policy: " + policy + ")");
+				tt.setTitle("Impact of proxy on time (policy: " + policy + ", scoring: " + scoring_formula + ")");
+				tt.setNickname(LatexNamer.latexify("tProxyComparisonEvents" + policy + scoring_formula));
 				add(et_events, tt);
 				Scatterplot plot = new Scatterplot(tt);
 				plot.setTitle(tt.getTitle());
+				plot.setNickname("p" + tt.getNickname());
 				plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Time per event (ms)");
+				plot.withPoints(false);
 				add(plot);
 			}
 			ExperimentTable et_memory = new ExperimentTable(INPUT_EVENTS, PROXY, MEMORY);
 			{
 				et_events.setShowInList(false);
 				TransformedTable tt = new TransformedTable(new ExpandAsColumns(PROXY, MEMORY), et_memory);
-				tt.setTitle("Impact of proxy precision on memory (policy: " + policy + ")");
+				tt.setTitle("Impact of proxy on memory (policy: " + policy + ", scoring: " + scoring_formula + ")");
+				tt.setNickname(LatexNamer.latexify("tProxyComparisonMemory" + policy + scoring_formula));
 				add(et_events, tt);
 				Scatterplot plot = new Scatterplot(tt);
 				plot.setTitle(tt.getTitle());
+				plot.setNickname("p" + tt.getNickname());
 				plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Memory (B)");
+				plot.withPoints(false);
+				add(plot);
+			}
+			ExperimentTable et_ca = new ExperimentTable(INPUT_EVENTS, PROXY, TRACE_SCORE);
+			{
+				et_ca.setShowInList(false);
+				TransformedTable tt = new TransformedTable(new ExpandAsColumns(PROXY, TRACE_SCORE), et_ca);
+				tt.setTitle("Impact of proxy on " + scoring_formula + " (policy: " + policy + ")");
+				tt.setNickname(LatexNamer.latexify("tProxyComparisonScore" + policy + scoring_formula));
+				add(et_ca, tt);
+				Scatterplot plot = new Scatterplot(tt);
+				plot.setTitle(tt.getTitle());
+				plot.setNickname("p" + tt.getNickname());
+				plot.setCaption(Axis.X, "Input event index").setCaption(Axis.Y, "Score");
+				plot.withPoints(false);
 				add(plot);
 			}
 			for (Region p_r : in_r.all(PROXY))
@@ -319,6 +358,7 @@ public class MainLab extends Laboratory
 				g.add(exp);
 				et_events.add(exp);
 				et_memory.add(exp);
+				et_ca.add(exp);
 			}
 		}
 	}
