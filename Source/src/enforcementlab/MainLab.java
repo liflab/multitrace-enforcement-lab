@@ -237,24 +237,24 @@ public class MainLab extends Laboratory
 		add(new LabStats(this));
 
 		// Impact of proxy
-		{
+		/*{
 			Group g = new Group("Impact of proxy precision");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
 			setupComparisonProxy(factory, g, AbcSource.NAME, 2, Property1.NAME, CountModifications.NAME, DeleteAny.NAME, DeleteAnyA.NAME);
 			setupComparisonProxy(factory, g, AbcSource.NAME, 2, Property1.NAME, CountModifications.NAME, InsertAny.NAME, InsertAnyA.NAME);
-		}
+		}*/
 		{
 			Group g = new Group("Proxy comparison (museum scenario, minimize changes)");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
-			setupComparisonProxy(factory, g, MuseumSourceAlternate.NAME, 4, MuseumPolicy.NAME, CountModifications.NAME, DeleteChildren.NAME, InsertGuard.NAME, /*InsertGuardNoCount.NAME,*/ ChildrenShadow.NAME);
+			setupComparisonProxy(factory, g, MuseumSourceAlternate.NAME, 4, MuseumPolicy.NAME, CountModifications.NAME, DeleteChildren.NAME, InsertGuard.NAME, /*InsertGuardNoCount.NAME,*/ ChildrenShadow.NAME, MuseumProxy.NAME);
 		}
 		{
 			Group g = new Group("Proxy comparison (museum scenario, minimize idle guards)");
 			g.setDescription("General measurements about the enforcement pipeline: execution time, number of corrective actions, etc.");
 			add(g);
-			setupComparisonProxy(factory, g, MuseumSourceAlternate.NAME, 4, MuseumPolicy.NAME, MinimizeIdleGuards.NAME, DeleteChildren.NAME, InsertGuard.NAME, /*InsertGuardNoCount.NAME,*/ ChildrenShadow.NAME);
+			setupComparisonProxy(factory, g, MuseumSourceAlternate.NAME, 4, MuseumPolicy.NAME, MinimizeIdleGuards.NAME, DeleteChildren.NAME, InsertGuard.NAME, /*InsertGuardNoCount.NAME,*/ ChildrenShadow.NAME, MuseumProxy.NAME);
 		}
 
 		// Comparing the impact of interval length on time for brute-force vs. prefix tree
